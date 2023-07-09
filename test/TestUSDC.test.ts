@@ -16,13 +16,13 @@ describe("testUSDC", function () {
     it("Should mint 10000000000 tUSDC to the owner", async () => {
       const { owner, testUSDC } = await loadFixture(runEveryTime);
       const balanceOfOwner = await testUSDC.balanceOf(owner.address);
-      const formattedBalance = ethers.parseUnits("10000000000", 18);
+      const formattedBalance = ethers.parseUnits("10000000000", 6);
       expect(balanceOfOwner).to.equal(formattedBalance);
     });
     it("Mint 100 tUSDC to otherAddress", async () => {
       const { otherAccount, testUSDC } = await loadFixture(runEveryTime);
 
-      const toMintBalance = ethers.parseUnits("100", 18);
+      const toMintBalance = ethers.parseUnits("100", 6);
       await testUSDC.mint(otherAccount.address, toMintBalance);
 
       const otherAccountBalance = await testUSDC.balanceOf(

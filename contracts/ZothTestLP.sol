@@ -239,10 +239,38 @@ contract ZothTestLP is ERC721URIStorage {
         _tokenIds.increment();
         uint256 newTokenId = _tokenIds.current();
         _mint(msg.sender, newTokenId);
-        _setTokenURI(
-            newTokenId,
-            "https://gateway.pinata.cloud/ipfs/QmZYPhDWWjK3QDxiZJuRwhyAaFYhS1mx8x5uNZfhRnPLEh"
-        );
+
+        if (amount <= 10000) {
+            // blue
+            _setTokenURI(
+                newTokenId,
+                "https://gateway.pinata.cloud/ipfs/QmZYPhDWWjK3QDxiZJuRwhyAaFYhS1mx8x5uNZfhRnPLEh"
+            );
+        } else if (amount > 10000 && amount <= 25000) {
+            // green
+            _setTokenURI(
+                newTokenId,
+                "https://gateway.pinata.cloud/ipfs/QmPV668ZHNhKVxAiTbh3etZYhqaq4jfi8UZoeMjydQZvjF"
+            );
+        } else if (amount > 25000 && amount <= 50000) {
+            // pink
+            _setTokenURI(
+                newTokenId,
+                "https://gateway.pinata.cloud/ipfs/QmZz39biRbQ4ADgiLyUhc2yTerwRyB43Rj1ddnD6jfK9KS"
+            );
+        } else if (amount > 50000 && amount <= 100000) {
+            // silver
+            _setTokenURI(
+                newTokenId,
+                "https://gateway.pinata.cloud/ipfs/QmfJJo8DGWAVUEDAJvZMySWoZ1SDVJ8vEds9h2TJ5FKTHv"
+            );
+        } else {
+            // gold
+            _setTokenURI(
+                newTokenId,
+                "https://gateway.pinata.cloud/ipfs/QmQcAaVr54LkSDZoqTxk6TRSnwMHD2jTX6t8VEenWeyvPd"
+            );
+        }
 
         return newTokenId;
     }
@@ -260,6 +288,7 @@ contract ZothTestLP is ERC721URIStorage {
         uint256 _depositNumber
     ) public view onlyWhitelisted returns (YieldDetails memory _yieldDetails) {
         uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
+
         uint256 _userEndTime = userEndTime[msg.sender][_depositNumber];
 
         uint256 balance = userDepositAmount[msg.sender][_depositNumber];
@@ -268,19 +297,27 @@ contract ZothTestLP is ERC721URIStorage {
             "[yieldClaimDetails(uint256 _depositNumber)] : Staking Balance check : staking balance cannot be 0"
         );
 
+        require(
+            block.timestamp > _userStartTime,
+            "[yieldClaimDetails(uint256 _depositNumber)] : Cooldown check : Your deposit is still in cooldown"
+        );
+
         uint256 elapsedTime = block.timestamp - _userStartTime;
+
         require(
             elapsedTime > 0,
-            "[yieldClaimDetails(uint256 _depositNumber)] : Elapsed Time check :elapsed time must be greater than 0"
+            "[yieldClaimDetails(uint256 _depositNumber)] : Elapsed Time check : elapsed time must be greater than 0"
         );
 
         uint256 timeInterval = (_userEndTime - _userStartTime) / freq;
+
         require(
             timeInterval > 0,
             "[yieldClaimDetails(uint256 _depositNumber)] : Time Interval check : time interval must be greater than 0"
         );
 
         uint256 cyclesElapsed = elapsedTime / timeInterval;
+
         require(
             cyclesElapsed <= freq,
             "[yieldClaimDetails(uint256 _depositNumber)] : Cycles Elapsed check : maximum frequency reached"
@@ -302,7 +339,7 @@ contract ZothTestLP is ERC721URIStorage {
             }
             require(
                 block.timestamp >= nextTransferTime,
-                "not enough time has passed since last transfer"
+                "[yieldClaimDetails(uint256 _depositNumber)] : Last Transfer check : not enough time has passed since last transfer"
             );
         }
         uint256 unlockedYield = (cyclesElapsed * totalYield) / freq;
@@ -351,6 +388,11 @@ contract ZothTestLP is ERC721URIStorage {
             "[yieldClaim(uint256 _depositNumber)] : Staking Balance check : staking balance cannot be 0"
         );
 
+        require(
+            block.timestamp > _userStartTime,
+            "[yieldClaim(uint256 _depositNumber)] : Cooldown check : Your deposit is still in cooldown"
+        );
+
         uint256 elapsedTime = block.timestamp - _userStartTime;
         require(
             elapsedTime > 0,
@@ -383,7 +425,7 @@ contract ZothTestLP is ERC721URIStorage {
             }
             require(
                 block.timestamp >= nextTransferTime,
-                "not enough time has passed since last transfer"
+                "[yieldClaim(uint256 _depositNumber)] : Last Transfer check : not enough time has passed since last transfer"
             );
 
             unlockedYield = (cyclesElapsed * totalYield) / freq;
@@ -432,17 +474,20 @@ contract ZothTestLP is ERC721URIStorage {
     function withdraw(uint256 _depositNumber) public onlyWhitelisted {
         require(
             userDepositAmount[msg.sender][_depositNumber] > 0,
-            " Insufficient balance in staking amount ."
+            "[withdraw(uint256 _depositNumber)] : Insufficient balance in staking amount."
         );
         require(
             block.timestamp >= userEndTime[msg.sender][_depositNumber],
-            "Loan Tenure is not over"
+            "[withdraw(uint256 _depositNumber)] : Loan Tenure is not over"
         );
-        usdc.transfer(
-            msg.sender,
-            userDepositAmount[msg.sender][_depositNumber] * 10 ** 6
-        );
+
+        uint256 _amountToTransfer = userDepositAmount[msg.sender][
+            _depositNumber
+        ];
+
         userDepositAmount[msg.sender][_depositNumber] = 0;
+
+        usdc.transfer(msg.sender, _amountToTransfer * 10 ** 6);
     }
 
     /**
@@ -452,8 +497,8 @@ contract ZothTestLP is ERC721URIStorage {
      * conditions :
      * contract balance >= amount
      */
-    function _transfer(uint _amount, address _receiver) public onlyOwners {
-        uint contractBalance = usdc.balanceOf(address(this));
+    function _transfer(uint256 _amount, address _receiver) public onlyOwners {
+        uint256 contractBalance = usdc.balanceOf(address(this));
         require(contractBalance >= _amount, "Insufficient Balance");
         usdc.transfer(_receiver, _amount * 10 ** 6);
     }
