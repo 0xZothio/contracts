@@ -1,13 +1,21 @@
-# Sample Hardhat Project
+# Zoth Contracts
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+This repo contains the EVM-comaptible smart contracts representing the Lending Pools.
 
-Try running some of the following tasks:
+Run :
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
+- This will compile, test and analyse all the test cases and will generate a coverge report.
+
+```sh
+yarn hardhat coverage
 ```
+
+<img src="./docs/1.png"></img>
+
+- This will generate the gas report of the functions that are to be executed on the blockchain.
+
+```sh
+REPORT_GAS=true npx hardhat test
+```
+
+<img src="./docs/2.png"></img>
