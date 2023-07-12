@@ -1,0 +1,300 @@
+strict digraph {
+subgraph cluster_4385_SignedMath {
+label = "SignedMath"
+"4385_min" [label="min"]
+"4385_abs" [label="abs"]
+"4385_average" [label="average"]
+"4385_max" [label="max"]
+}subgraph cluster_3105_Address {
+label = "Address"
+"3105_verifyCallResultFromTarget" [label="verifyCallResultFromTarget"]
+"3105_sendValue" [label="sendValue"]
+"3105__revert" [label="_revert"]
+"3105_functionStaticCall" [label="functionStaticCall"]
+"3105_functionCallWithValue" [label="functionCallWithValue"]
+"3105_functionDelegateCall" [label="functionDelegateCall"]
+"3105_isContract" [label="isContract"]
+"3105_functionCall" [label="functionCall"]
+"3105_verifyCallResult" [label="verifyCallResult"]
+"3105_functionDelegateCall" -> "3105_functionDelegateCall"
+"3105_functionCallWithValue" -> "3105_functionCallWithValue"
+"3105_functionCall" -> "3105_functionCallWithValue"
+"3105_verifyCallResultFromTarget" -> "3105_isContract"
+"3105_verifyCallResultFromTarget" -> "3105__revert"
+"3105_verifyCallResult" -> "3105__revert"
+"3105_functionStaticCall" -> "3105_functionStaticCall"
+"3105_functionStaticCall" -> "3105_verifyCallResultFromTarget"
+"3105_functionCallWithValue" -> "3105_verifyCallResultFromTarget"
+"3105_functionDelegateCall" -> "3105_verifyCallResultFromTarget"
+}subgraph cluster_2748_IERC721Receiver {
+label = "IERC721Receiver"
+"2748_onERC721Received" [label="onERC721Received"]
+}subgraph cluster_1284_IERC20 {
+label = "IERC20"
+"1284_totalSupply" [label="totalSupply"]
+"1284_transfer" [label="transfer"]
+"1284_transferFrom" [label="transferFrom"]
+"1284_approve" [label="approve"]
+"1284_balanceOf" [label="balanceOf"]
+"1284_allowance" [label="allowance"]
+}subgraph cluster_1353_ReentrancyGuard {
+label = "ReentrancyGuard"
+"1353__nonReentrantAfter" [label="_nonReentrantAfter"]
+"1353__reentrancyGuardEntered" [label="_reentrancyGuardEntered"]
+"1353__nonReentrantBefore" [label="_nonReentrantBefore"]
+"1353_constructor" [label="constructor"]
+}subgraph cluster_2730_IERC721 {
+label = "IERC721"
+"2730_balanceOf" [label="balanceOf"]
+"2730_transferFrom" [label="transferFrom"]
+"2730_isApprovedForAll" [label="isApprovedForAll"]
+"2730_ownerOf" [label="ownerOf"]
+"2730_safeTransferFrom" [label="safeTransferFrom"]
+"2730_approve" [label="approve"]
+"2730_setApprovalForAll" [label="setApprovalForAll"]
+"2730_getApproved" [label="getApproved"]
+}subgraph cluster_2775_IERC721Metadata {
+label = "IERC721Metadata"
+"2775_tokenURI" [label="tokenURI"]
+"2775_name" [label="name"]
+"2775_symbol" [label="symbol"]
+}subgraph cluster_2540_ERC721URIStorage {
+label = "ERC721URIStorage"
+"2540_tokenURI" [label="tokenURI"]
+"2540__setTokenURI" [label="_setTokenURI"]
+"2540_supportsInterface" [label="supportsInterface"]
+"2540__burn" [label="_burn"]
+"2540__burn" -> "2540__burn"
+"2540_supportsInterface" -> "2540_supportsInterface"
+"2540_tokenURI" -> "2540_tokenURI"
+"2540_tokenURI" -> "2540__baseURI"
+"2540__setTokenURI" -> "2540__exists"
+"2540_tokenURI" -> "2540__requireMinted"
+}subgraph cluster_2384_ERC721 {
+label = "ERC721"
+"2384__setApprovalForAll" [label="_setApprovalForAll"]
+"2384__burn" [label="_burn"]
+"2384__ownerOf" [label="_ownerOf"]
+"2384_name" [label="name"]
+"2384_constructor" [label="constructor"]
+"2384__beforeTokenTransfer" [label="_beforeTokenTransfer"]
+"2384__checkOnERC721Received" [label="_checkOnERC721Received"]
+"2384_approve" [label="approve"]
+"2384_balanceOf" [label="balanceOf"]
+"2384_symbol" [label="symbol"]
+"2384__transfer" [label="_transfer"]
+"2384_getApproved" [label="getApproved"]
+"2384_setApprovalForAll" [label="setApprovalForAll"]
+"2384__baseURI" [label="_baseURI"]
+"2384__isApprovedOrOwner" [label="_isApprovedOrOwner"]
+"2384_supportsInterface" [label="supportsInterface"]
+"2384__approve" [label="_approve"]
+"2384_tokenURI" [label="tokenURI"]
+"2384_ownerOf" [label="ownerOf"]
+"2384__safeMint" [label="_safeMint"]
+"2384__requireMinted" [label="_requireMinted"]
+"2384__mint" [label="_mint"]
+"2384__exists" [label="_exists"]
+"2384_isApprovedForAll" [label="isApprovedForAll"]
+"2384_safeTransferFrom" [label="safeTransferFrom"]
+"2384__afterTokenTransfer" [label="_afterTokenTransfer"]
+"2384___unsafe_increaseBalance" [label="__unsafe_increaseBalance"]
+"2384__safeTransfer" [label="_safeTransfer"]
+"2384_transferFrom" [label="transferFrom"]
+"2384_tokenURI" -> "2384__baseURI"
+"2384__exists" -> "2384__ownerOf"
+"2384__mint" -> "2384__beforeTokenTransfer"
+"2384_approve" -> "2384_isApprovedForAll"
+"2384_safeTransferFrom" -> "2384__isApprovedOrOwner"
+"2384__burn" -> "2384__afterTokenTransfer"
+"2384__mint" -> "2384__afterTokenTransfer"
+"2384_transferFrom" -> "2384__transfer"
+"2384__safeMint" -> "2384__checkOnERC721Received"
+"2384_tokenURI" -> "2384__requireMinted"
+"2384__transfer" -> "2384__beforeTokenTransfer"
+"2384_transferFrom" -> "2384__isApprovedOrOwner"
+"2384__transfer" -> "2384_ownerOf"
+"2384__requireMinted" -> "2384__exists"
+"2384__burn" -> "2384__beforeTokenTransfer"
+"2384_transferFrom" -> "2384__msgSender"
+"2384_supportsInterface" -> "2384_supportsInterface"
+"2384_setApprovalForAll" -> "2384__msgSender"
+"2384__checkOnERC721Received" -> "2384__msgSender"
+"2384_safeTransferFrom" -> "2384__msgSender"
+"2384_approve" -> "2384__approve"
+"2384_safeTransferFrom" -> "2384_safeTransferFrom"
+"2384__safeTransfer" -> "2384__checkOnERC721Received"
+"2384__isApprovedOrOwner" -> "2384_getApproved"
+"2384__isApprovedOrOwner" -> "2384_ownerOf"
+"2384__safeMint" -> "2384__safeMint"
+"2384_approve" -> "2384__msgSender"
+"2384_setApprovalForAll" -> "2384__setApprovalForAll"
+"2384_ownerOf" -> "2384__ownerOf"
+"2384__safeMint" -> "2384__mint"
+"2384__burn" -> "2384_ownerOf"
+"2384_approve" -> "2384_ownerOf"
+"2384_safeTransferFrom" -> "2384__safeTransfer"
+"2384_getApproved" -> "2384__requireMinted"
+"2384__isApprovedOrOwner" -> "2384_isApprovedForAll"
+"2384__safeTransfer" -> "2384__transfer"
+"2384__transfer" -> "2384__afterTokenTransfer"
+"2384__mint" -> "2384__exists"
+"2384__approve" -> "2384_ownerOf"
+}subgraph cluster_1457_Roles {
+label = "Roles"
+"1457_has" [label="has"]
+"1457_remove" [label="remove"]
+"1457_add" [label="add"]
+"1457_remove" -> "1457_has"
+"1457_add" -> "1457_has"
+}subgraph cluster_3380_ERC165 {
+label = "ERC165"
+"3380_supportsInterface" [label="supportsInterface"]
+}subgraph cluster_3414_IERC165 {
+label = "IERC165"
+"3414_supportsInterface" [label="supportsInterface"]
+}subgraph cluster_3127_Context {
+label = "Context"
+"3127__msgData" [label="_msgData"]
+"3127__msgSender" [label="_msgSender"]
+}subgraph cluster_4280_Math {
+label = "Math"
+"4280_log10" [label="log10"]
+"4280_log256" [label="log256"]
+"4280_sqrt" [label="sqrt"]
+"4280_min" [label="min"]
+"4280_ceilDiv" [label="ceilDiv"]
+"4280_log2" [label="log2"]
+"4280_average" [label="average"]
+"4280_max" [label="max"]
+"4280_mulDiv" [label="mulDiv"]
+"4280_sqrt" -> "4280_min"
+"4280_log2" -> "4280_log2"
+"4280_sqrt" -> "4280_log2"
+"4280_log256" -> "4280_log256"
+"4280_mulDiv" -> "4280_mulDiv"
+"4280_sqrt" -> "4280_sqrt"
+"4280_log10" -> "4280_log10"
+}subgraph cluster_2614_Counters {
+label = "Counters"
+"2614_reset" [label="reset"]
+"2614_increment" [label="increment"]
+"2614_current" [label="current"]
+"2614_decrement" [label="decrement"]
+}subgraph cluster_3356_Strings {
+label = "Strings"
+"3356_toString" [label="toString"]
+"3356_equal" [label="equal"]
+"3356_toHexString" [label="toHexString"]
+"3356_toString" -> "3356_toString"
+"3356_toHexString" -> "3356_toHexString"
+}subgraph cluster_1215_ZothTestLP {
+label = "ZothTestLP"
+"1215_addWhitelistAddress" [label="addWhitelistAddress"]
+"1215__getCyclesClaimed" [label="_getCyclesClaimed"]
+"1215_getportfoliobalance" [label="getportfoliobalance"]
+"1215_getDepositDetails" [label="getDepositDetails"]
+"1215__transfer" [label="_transfer"]
+"1215_getContractVariables" [label="getContractVariables"]
+"1215_setContractVariables" [label="setContractVariables"]
+"1215_yieldClaimDetails" [label="yieldClaimDetails"]
+"1215_yieldClaim" [label="yieldClaim"]
+"1215_withdraw" [label="withdraw"]
+"1215_addVerifierRole" [label="addVerifierRole"]
+"1215_removeWhitelistAddress" [label="removeWhitelistAddress"]
+"1215_constructor" [label="constructor"]
+"1215_deposit" [label="deposit"]
+"1215_deposit" -> "1215_onlyWhitelisted"
+"1215_deposit" -> "1215__setTokenURI"
+"1215_withdraw" -> "1215_onlyWhitelisted"
+"1215_yieldClaim" -> "1215_onlyWhitelisted"
+"1215_addWhitelistAddress" -> "1215_onlyAuthorities"
+"1215_yieldClaimDetails" -> "1215__getCyclesClaimed"
+"1215_yieldClaimDetails" -> "1215_onlyWhitelisted"
+"1215_deposit" -> "1215_nonReentrant"
+"1215_removeWhitelistAddress" -> "1215_onlyAuthorities"
+"1215_setContractVariables" -> "1215_onlyOwners"
+"1215__transfer" -> "1215_onlyOwners"
+"1215_constructor" -> "1215_constructor"
+"1215_deposit" -> "1215__mint"
+"1215_addVerifierRole" -> "1215_onlyOwners"
+}subgraph cluster_solidity {
+label = "[Solidity]"
+"revert(string)" 
+"mulmod(uint256,uint256,uint256)" 
+"require(bool)" 
+"balance(address)" 
+"require(bool,string)" 
+"mstore8(uint256,uint256)" 
+"keccak256(bytes)" 
+"code(address)" 
+"type()" 
+"revert ReentrancyGuardReentrantCall()" 
+"mload(uint256)" 
+"byte(uint256,uint256)" 
+"revert(uint256,uint256)" 
+"abi.encodePacked()" 
+"2384__safeTransfer" -> "require(bool,string)"
+"2384__mint" -> "require(bool,string)"
+"2384__checkOnERC721Received" -> "revert(uint256,uint256)"
+"2384__checkOnERC721Received" -> "revert(string)"
+"1215_deposit" -> "require(bool,string)"
+"1215_yieldClaim" -> "require(bool,string)"
+"3105__revert" -> "revert(string)"
+"1353__nonReentrantBefore" -> "revert ReentrancyGuardReentrantCall()"
+"4280_mulDiv" -> "require(bool,string)"
+"4280_mulDiv" -> "mulmod(uint256,uint256,uint256)"
+"3105_functionCallWithValue" -> "require(bool,string)"
+"1215_yieldClaimDetails" -> "require(bool,string)"
+"3356_toString" -> "byte(uint256,uint256)"
+"2384_safeTransferFrom" -> "require(bool,string)"
+"2384__requireMinted" -> "require(bool,string)"
+"2384_ownerOf" -> "require(bool,string)"
+"3356_toString" -> "mstore8(uint256,uint256)"
+"3356_toHexString" -> "require(bool,string)"
+"1457_add" -> "require(bool)"
+"2384__checkOnERC721Received" -> "mload(uint256)"
+"2384__setApprovalForAll" -> "require(bool,string)"
+"3105_sendValue" -> "require(bool,string)"
+"2384_supportsInterface" -> "type()"
+"3105_isContract" -> "code(address)"
+"3105_sendValue" -> "balance(address)"
+"2384_tokenURI" -> "abi.encodePacked()"
+"3105_functionCallWithValue" -> "balance(address)"
+"2384__transfer" -> "require(bool,string)"
+"2614_decrement" -> "require(bool,string)"
+"3356_equal" -> "keccak256(bytes)"
+"3105__revert" -> "revert(uint256,uint256)"
+"2384_approve" -> "require(bool,string)"
+"2384_balanceOf" -> "require(bool,string)"
+"3105_verifyCallResultFromTarget" -> "require(bool,string)"
+"1215_withdraw" -> "require(bool,string)"
+"1215__transfer" -> "require(bool,string)"
+"3356_toString" -> "abi.encodePacked()"
+"2540__setTokenURI" -> "require(bool,string)"
+"2540_tokenURI" -> "abi.encodePacked()"
+"1457_has" -> "require(bool)"
+"3105__revert" -> "mload(uint256)"
+"2384__safeMint" -> "require(bool,string)"
+"1457_remove" -> "require(bool)"
+"2384_transferFrom" -> "require(bool,string)"
+"3380_supportsInterface" -> "type()"
+}"3356_toHexString" -> "4280_log256"
+"1215_addVerifierRole" -> "1457_add"
+"1215_withdraw" -> "1284_transfer"
+"1215_addWhitelistAddress" -> "1457_add"
+"1215_deposit" -> "1284_allowance"
+"1215_deposit" -> "2614_increment"
+"1215__transfer" -> "1284_balanceOf"
+"1215_deposit" -> "1284_transferFrom"
+"2384__checkOnERC721Received" -> "2748_onERC721Received"
+"2384_tokenURI" -> "3356_toString"
+"3356_toString" -> "4385_abs"
+"3356_toString" -> "4280_log10"
+"1215_constructor" -> "1457_add"
+"1215_yieldClaim" -> "1284_transfer"
+"1215_removeWhitelistAddress" -> "1457_remove"
+"1215_deposit" -> "2614_current"
+"1215__transfer" -> "1284_transfer"
+"2384__checkOnERC721Received" -> "3105_isContract"
+}

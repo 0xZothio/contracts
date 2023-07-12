@@ -6,20 +6,21 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import {Roles} from "./Roles.sol";
 import {IERC20} from "./IERC20.sol";
+import {ReentrancyGuard} from "./ReentrancyGuard.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 /**
  * @author Zoth.io
  * @notice This contract is a pool contract that inherits the properties of the ERC721 token standard.
  */
 
-contract ZothTestLP is ERC721URIStorage {
+contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
     using Roles for Roles.Role;
     using Counters for Counters.Counter;
 
-    IERC20 public usdc;
-    address public owner;
+    IERC20 public immutable usdc;
+    address public immutable owner;
 
     Counters.Counter private _tokenIds;
 
@@ -200,7 +201,7 @@ contract ZothTestLP is ERC721URIStorage {
     function deposit(
         uint256 amount,
         uint256 _tenureOption
-    ) public onlyWhitelisted returns (uint256) {
+    ) public onlyWhitelisted nonReentrant returns (uint256) {
         require(
             _tenureOption == 1 || _tenureOption == 2 || _tenureOption == 3,
             "[deposit(uint256 amount,uint256 _tenureOption)] : Tenure Option check : Tenure options should be between 1 and 3"
@@ -323,16 +324,15 @@ contract ZothTestLP is ERC721URIStorage {
             "[yieldClaimDetails(uint256 _depositNumber)] : Cycles Elapsed check : maximum frequency reached"
         );
 
-        uint256 totalYield = ((_userEndTime - _userStartTime) *
+        uint256 totalYield = (((_userEndTime - _userStartTime) *
             reward *
-            balance) / (31536000 * 100);
+            balance) / (31536000 * 100));
 
         uint256 _cyclesClaimed = _getCyclesClaimed(_depositNumber);
 
         if (cyclesElapsed > 0) {
-            uint256 lastTransferTime = _userStartTime +
-                _cyclesClaimed *
-                timeInterval;
+            uint256 lastTransferTime = (_userStartTime +
+                (_cyclesClaimed * timeInterval));
             uint256 nextTransferTime = lastTransferTime + timeInterval;
             if (block.timestamp < lastTransferTime) {
                 nextTransferTime = lastTransferTime;
@@ -342,7 +342,7 @@ contract ZothTestLP is ERC721URIStorage {
                 "[yieldClaimDetails(uint256 _depositNumber)] : Last Transfer check : not enough time has passed since last transfer"
             );
         }
-        uint256 unlockedYield = (cyclesElapsed * totalYield) / freq;
+        uint256 unlockedYield = ((cyclesElapsed * totalYield) / freq);
 
         uint256 cyclesLeft = freq - cyclesElapsed;
         uint256 lockedYield = totalYield - unlockedYield;
@@ -432,7 +432,10 @@ contract ZothTestLP is ERC721URIStorage {
             cyclesClaimed[msg.sender][_depositNumber] += cyclesElapsed;
         }
 
-        usdc.transfer(msg.sender, unlockedYield * 10 ** 6);
+        require(
+            usdc.transfer(msg.sender, unlockedYield * 10 ** 6),
+            "TRANSFER FAILED"
+        );
     }
 
     /**
@@ -487,7 +490,10 @@ contract ZothTestLP is ERC721URIStorage {
 
         userDepositAmount[msg.sender][_depositNumber] = 0;
 
-        usdc.transfer(msg.sender, _amountToTransfer * 10 ** 6);
+        require(
+            usdc.transfer(msg.sender, _amountToTransfer * 10 ** 6),
+            "TRANSFER FAILED"
+        );
     }
 
     /**
@@ -500,6 +506,6 @@ contract ZothTestLP is ERC721URIStorage {
     function _transfer(uint256 _amount, address _receiver) public onlyOwners {
         uint256 contractBalance = usdc.balanceOf(address(this));
         require(contractBalance >= _amount, "Insufficient Balance");
-        usdc.transfer(_receiver, _amount * 10 ** 6);
+        require(usdc.transfer(_receiver, _amount * 10 ** 6), "TRANSFER FAILED");
     }
 }

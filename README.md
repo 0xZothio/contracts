@@ -19,3 +19,18 @@ REPORT_GAS=true npx hardhat test
 ```
 
 <img src="./docs/2.png"></img>
+
+## Local Audit
+
+Folder : `/local-audit`
+
+Tools used :
+
+- Slither
+
+First Iteration :
+
+- Added Slither Report
+- Added RenentrancyGuard
+- Formatted Calculations
+- Added Contract Graphs
