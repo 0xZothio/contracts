@@ -61,14 +61,20 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
         uint256 timeLeft;
     }
 
-    struct DepositDetails {
+    struct ClaimUSDCDetails {
         uint256 balance;
-        uint256 depositNumber;
-        uint256 startTime;
-        uint256 endTime;
-        uint256 hotPeriod;
-        uint256 reward;
-        uint256 poolId;
+        uint256 yield;
+        uint256 startDate;
+        uint256 cyclesRemaining;
+        uint256 yieldGenerated;
+        uint256 nextUnlockDate;
+    }
+
+    struct WithdrawUSDCDetails {
+        uint256 balance;
+        uint256 yield;
+        uint256 startDate;
+        uint256 unlockDate;
     }
 
     constructor(address _usdcAddress) ERC721("ZothTestLP", "ZUSDC") {
@@ -299,7 +305,11 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
 
         _yieldDetails.balance = balance;
         _yieldDetails.totalYield = totalYield;
-        _yieldDetails.unlockedYield = 0;
+        if (block.timestamp >= _userEndTime){
+            _yieldDetails.unlockedYield = totalYield;
+        }else{
+            _yieldDetails.unlockedYield = 0;
+        }
         _yieldDetails.lockedYield = totalYield;
         _yieldDetails.cyclesLeft = 1;
         if (block.timestamp <= _userEndTime) {
@@ -346,26 +356,45 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
         return (stakingBalance[msg.sender]);
     }
 
-    /**
-     * @dev Gets the Deposit Details
-     * @param _depositNumber Deposit Number for which one wants to claim the yield.
-     */
-    function getDepositDetails(
-        uint256 _depositNumber
-    ) public view returns (DepositDetails memory _depositDetails) {
+    function getClaimUSDCDetails(uint256 _depositNumber) public view returns (ClaimUSDCDetails memory _claimUSDCDetails) {
         uint256 _balance = userDepositAmount[msg.sender][_depositNumber];
         uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
         uint256 _userEndTime = userEndTime[msg.sender][_depositNumber];
 
-        _depositDetails.balance = _balance;
-        _depositDetails.depositNumber = _depositNumber;
-        _depositDetails.startTime = _userStartTime;
-        _depositDetails.endTime = _userEndTime;
-        _depositDetails.hotPeriod = hotPeriod;
-        _depositDetails.reward = reward;
-        _depositDetails.poolId = poolId;
+        YieldDetails memory _details = yieldClaimDetails(_depositNumber);
 
-        return _depositDetails;
+        _claimUSDCDetails.balance = _balance;
+        _claimUSDCDetails.yield = _details.totalYield;
+        _claimUSDCDetails.startDate = _userStartTime;
+        _claimUSDCDetails.cyclesRemaining = 1;
+        _claimUSDCDetails.yieldGenerated = _details.unlockedYield;
+        _claimUSDCDetails.nextUnlockDate = _userEndTime;
+
+        return _claimUSDCDetails;
+    }
+
+    /**
+    struct WithdrawUSDCDetails {
+        uint256 balance;
+        uint256 yield;
+        uint256 startDate;
+        uint256 unlockDate;
+    }
+    */
+
+    function getWithdrawUSDCDetails (uint256 _depositNumber) public view returns (WithdrawUSDCDetails memory _withdrawUSDCDetails) {
+        uint256 _balance = userDepositAmount[msg.sender][_depositNumber];
+        uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
+        uint256 _userEndTime = userEndTime[msg.sender][_depositNumber];
+
+        YieldDetails memory _details = yieldClaimDetails(_depositNumber);
+
+        _withdrawUSDCDetails.balance = _balance;
+        _withdrawUSDCDetails.yield = _details.totalYield;
+        _withdrawUSDCDetails.startDate = _userStartTime;
+        _withdrawUSDCDetails.unlockDate = _userEndTime;
+
+        return _withdrawUSDCDetails;
     }
 
     /**
@@ -420,3 +449,17 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
         require(usdc.transfer(_receiver, _amount), "TRANSFER FAILED");
     }
 }
+
+/**
+"7889229",
+        "15778458",
+        "23667687",
+        "12",
+        "1",
+        "100001",
+        "345600"
+
+100000000 ,1 ,1690030403 ,1697919632 ,345600 ,12 ,100001
+
+ 100000000 ,3001980 ,0 ,3001980 ,1 ,7889105
+*/
