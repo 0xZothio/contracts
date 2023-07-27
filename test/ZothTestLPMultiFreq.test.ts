@@ -291,7 +291,7 @@ describe("ZothTestLPMultiFreq", function () {
       );
 
       // increase the timestamp of block after cooldown
-      await time.increaseTo(1698883539);
+      await time.increase(7889229);
 
       const vars = await ZothTestLP.connect(otherAccount).yieldClaimDetails(
         "1"

@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {Roles} from "./Roles.sol";
 import {IERC20} from "./IERC20.sol";
 import {ReentrancyGuard} from "./ReentrancyGuard.sol";
+import "hardhat/console.sol";
 
 /**
  * @author Zoth.io
@@ -315,9 +316,9 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         );
 
         uint256 cyclesElapsed = elapsedTime / timeInterval;
-
+        console.log("CYCLES ELAPSED", cyclesElapsed);
         require(
-            cyclesElapsed <= freq,
+            cyclesElapsed <= freq + 1,
             "[yieldClaimDetails(uint256 _depositNumber)] : Cycles Elapsed check : maximum frequency reached"
         );
 
