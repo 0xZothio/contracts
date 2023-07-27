@@ -484,7 +484,10 @@ describe("ZothTestLPMultiFreq", function () {
 
       // depositing 100 tUSDC into LP
 
-      await ZothTestLP.connect(otherAccount).deposit("100", 1);
+      await ZothTestLP.connect(otherAccount).deposit(
+        ethers.parseUnits("100", 6),
+        1
+      );
 
       await expect(
         ZothTestLP.connect(otherAccount).withdraw("1")
