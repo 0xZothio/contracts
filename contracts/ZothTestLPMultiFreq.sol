@@ -36,6 +36,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
     mapping(address => uint256) public balances;
     mapping(address => mapping(uint256 => uint256)) public cyclesClaimed;
     mapping(address => mapping(uint256 => uint256)) public prevClaimed;
+    mapping(address => mapping(uint256 => uint256)) public yieldClaimed;
     mapping(uint256 => bool) public withdrawClaimed;
 
     // Vars for the pool
@@ -149,24 +150,6 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         freq = _freq;
         poolId = _poolId;
         hotPeriod = _hotPeriod;
-    }
-
-    /**
-     * @dev Get the variables for the pool cycle - Tenures, Reward Rate, Freq, PoolId and Cooldownperiod
-     * @return _tenure1 tenure 1 variable
-     * @return _tenure2 tenure 2 variable
-     * @return _tenure3 tenure 3 variable
-     * @return _reward reward percentage of the pool
-     * @return _freq frequency of the withdrawl
-     * @return _poolId Pool Identifier number
-     * @return _hotPeriod Cooldown Period after which rewards start to be calculated
-     */
-    function getContractVariables()
-        external
-        view
-        returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256)
-    {
-        return (tenure1, tenure2, tenure3, reward, freq, poolId, hotPeriod);
     }
 
     /**
@@ -325,15 +308,13 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
 
         uint256 cyclesLeft;
         uint256 lockedYield;
-        if (freq >= cyclesElapsed) {
+        if (freq >= cyclesElapsed && totalYield >= unlockedYield) {
             cyclesLeft = freq - cyclesElapsed;
             lockedYield = totalYield - unlockedYield;
+        }else {
+            unlockedYield = 0;
+            nextTransferTime = 0;
         }
-        // else {
-        //     unlockedYield = 0;
-        //     nextTransferTime = 0;
-        //     totalYield = 0;
-        // }
         uint256 timeLeft = cyclesLeft * timeInterval;
 
         _yieldDetails.balance = balance;
@@ -359,11 +340,11 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         return cyclesClaimed[msg.sender][_depositNumber];
     }
 
-    function _getPrevClaimed(
-        uint256 _depositNumber
-    ) private view returns (uint256) {
-        return prevClaimed[msg.sender][_depositNumber];
-    }
+    // function _getPrevClaimed(
+    //     uint256 _depositNumber
+    // ) private view returns (uint256) {
+    //     return prevClaimed[msg.sender][_depositNumber];
+    // }
 
     /**
      * @dev Allows user to claim the yield
@@ -381,21 +362,19 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
             block.timestamp >= _details.nextTransferTime,
             "[yieldClaim(uint256 _depositNumber)] : Last Transfer check : not enough time has passed since last transfer"
         );
-
-        uint256 _cyclesClaimed = _getCyclesClaimed(_depositNumber);
-
+        // cyclesElapsed * (totalYield / freq) < _detauls.totalYield
         require(
-            _cyclesClaimed < freq,
-            "[yieldClaimDetails(uint256 _depositNumber)] : Cycles Elapsed check : maximum frequency reached"
+            yieldClaimed[msg.sender][_depositNumber] < _details.totalYield,
+            "[yieldClaim(uint256 _depositNumber)] : User Claim Check : total yield already claimed" 
         );
 
-        uint256 _prevClaimed = _getPrevClaimed(_depositNumber);
+        uint256 _prevClaimed = prevClaimed[msg.sender][_depositNumber];
         cyclesClaimed[msg.sender][_depositNumber] += 1;
         require(
             usdc.transfer(msg.sender, _details.unlockedYield - _prevClaimed),
             "TRANSFER FAILED"
         );
-
+        yieldClaimed[msg.sender][_depositNumber] += _details.unlockedYield - _prevClaimed;
         prevClaimed[msg.sender][_depositNumber] = _details.unlockedYield;
     }
 
@@ -422,7 +401,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         _claimUSDCDetails.balance = _balance;
         _claimUSDCDetails.yield = _details.totalYield;
         _claimUSDCDetails.startDate = _userStartTime;
-        _claimUSDCDetails.cyclesRemaining = 1;
+        _claimUSDCDetails.cyclesRemaining = _details.cyclesLeft;
         _claimUSDCDetails.yieldGenerated = _details.unlockedYield;
         _claimUSDCDetails.nextUnlockDate = _userEndTime;
 
