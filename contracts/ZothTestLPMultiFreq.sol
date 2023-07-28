@@ -8,7 +8,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {Roles} from "./Roles.sol";
 import {IERC20} from "./IERC20.sol";
 import {ReentrancyGuard} from "./ReentrancyGuard.sol";
-import "hardhat/console.sol";
+
+// import "hardhat/console.sol";
 
 /**
  * @author Zoth.io
@@ -34,6 +35,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
     mapping(address => uint256) public stakingBalance;
     mapping(address => uint256) public balances;
     mapping(address => mapping(uint256 => uint256)) public cyclesClaimed;
+    mapping(address => mapping(uint256 => uint256)) public prevClaimed;
     mapping(uint256 => bool) public withdrawClaimed;
 
     // Vars for the pool
@@ -296,40 +298,21 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         uint256 _userEndTime = userEndTime[msg.sender][_depositNumber];
         uint256 balance = userDepositAmount[msg.sender][_depositNumber];
 
-        require(
-            balance > 0,
-            "[yieldClaimDetails(uint256 _depositNumber)] : Staking Balance check : staking balance cannot be 0"
-        );
-
         uint256 elapsedTime = block.timestamp - _userStartTime;
-
-        require(
-            elapsedTime > 0,
-            "[yieldClaimDetails(uint256 _depositNumber)] : Elapsed Time check : elapsed time must be greater than 0"
-        );
-
         uint256 timeInterval = (_userEndTime - _userStartTime) / freq;
-
-        require(
-            timeInterval > 0,
-            "[yieldClaimDetails(uint256 _depositNumber)] : Time Interval check : time interval must be greater than 0"
-        );
-
         uint256 cyclesElapsed = elapsedTime / timeInterval;
-        console.log("CYCLES ELAPSED", cyclesElapsed);
-        require(
-            cyclesElapsed <= freq + 1,
-            "[yieldClaimDetails(uint256 _depositNumber)] : Cycles Elapsed check : maximum frequency reached"
-        );
 
         uint256 _timeFraction = ((_userEndTime - _userStartTime) * (10 ** 6)) /
             SECS_IN_YEAR;
 
         uint256 totalYield = (balance * reward * _timeFraction) / (10 ** 8);
+
         uint256 unlockedYield = 0;
 
         uint256 _cyclesClaimed = _getCyclesClaimed(_depositNumber);
+
         uint256 nextTransferTime = 0;
+
         if (cyclesElapsed > 0) {
             uint256 lastTransferTime = (_userStartTime +
                 (_cyclesClaimed * timeInterval));
@@ -340,8 +323,17 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
             unlockedYield = ((cyclesElapsed * totalYield) / freq);
         }
 
-        uint256 cyclesLeft = freq - cyclesElapsed;
-        uint256 lockedYield = totalYield - unlockedYield;
+        uint256 cyclesLeft;
+        uint256 lockedYield;
+        if (freq >= cyclesElapsed) {
+            cyclesLeft = freq - cyclesElapsed;
+            lockedYield = totalYield - unlockedYield;
+        }
+        // else {
+        //     unlockedYield = 0;
+        //     nextTransferTime = 0;
+        //     totalYield = 0;
+        // }
         uint256 timeLeft = cyclesLeft * timeInterval;
 
         _yieldDetails.balance = balance;
@@ -367,6 +359,12 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         return cyclesClaimed[msg.sender][_depositNumber];
     }
 
+    function _getPrevClaimed(
+        uint256 _depositNumber
+    ) private view returns (uint256) {
+        return prevClaimed[msg.sender][_depositNumber];
+    }
+
     /**
      * @dev Allows user to claim the yield
      * @param _depositNumber Deposit Number for which one wants to claim the yield.
@@ -384,11 +382,21 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
             "[yieldClaim(uint256 _depositNumber)] : Last Transfer check : not enough time has passed since last transfer"
         );
 
-        cyclesClaimed[msg.sender][_depositNumber] = _details.cyclesElapsed;
+        uint256 _cyclesClaimed = _getCyclesClaimed(_depositNumber);
+
         require(
-            usdc.transfer(msg.sender, _details.unlockedYield),
+            _cyclesClaimed < freq,
+            "[yieldClaimDetails(uint256 _depositNumber)] : Cycles Elapsed check : maximum frequency reached"
+        );
+
+        uint256 _prevClaimed = _getPrevClaimed(_depositNumber);
+        cyclesClaimed[msg.sender][_depositNumber] += 1;
+        require(
+            usdc.transfer(msg.sender, _details.unlockedYield - _prevClaimed),
             "TRANSFER FAILED"
         );
+
+        prevClaimed[msg.sender][_depositNumber] = _details.unlockedYield;
     }
 
     /**

@@ -4,8 +4,8 @@ const main = async () => {
   const signer = await ethers.getSigners();
   console.log("OWNER ADDRESS : ", signer[0].address);
   const contract = await ethers.getContractAt(
-    "ZothTestLP",
-    "0xf5377a689b7abb6a31212cc02094a24a686da033"
+    "ZothTestLPMultiFreq",
+    "0xeA4b8600F138De3F5765623eb1c21B13A5c034aA"
   );
 
   const tx = await contract.addWhitelistAddress(
