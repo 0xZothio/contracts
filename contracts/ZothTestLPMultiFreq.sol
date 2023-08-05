@@ -67,22 +67,6 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         uint256 nextTransferTime;
     }
 
-    struct ClaimUSDCDetails {
-        uint256 balance;
-        uint256 yield;
-        uint256 startDate;
-        uint256 cyclesRemaining;
-        uint256 yieldGenerated;
-        uint256 nextUnlockDate;
-    }
-
-    struct WithdrawUSDCDetails {
-        uint256 balance;
-        uint256 yield;
-        uint256 startDate;
-        uint256 unlockDate;
-    }
-
     constructor(address _usdcAddress) ERC721("ZothTestLP", "ZUSDC") {
         usdc = IERC20(_usdcAddress);
         owner = msg.sender;
@@ -311,9 +295,9 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         if (freq >= cyclesElapsed && totalYield >= unlockedYield) {
             cyclesLeft = freq - cyclesElapsed;
             lockedYield = totalYield - unlockedYield;
-        }else {
-            unlockedYield = 0;
-            nextTransferTime = 0;
+        } else {
+            unlockedYield = totalYield;
+            nextTransferTime = _userEndTime;
         }
         uint256 timeLeft = cyclesLeft * timeInterval;
 
@@ -340,12 +324,6 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         return cyclesClaimed[msg.sender][_depositNumber];
     }
 
-    // function _getPrevClaimed(
-    //     uint256 _depositNumber
-    // ) private view returns (uint256) {
-    //     return prevClaimed[msg.sender][_depositNumber];
-    // }
-
     /**
      * @dev Allows user to claim the yield
      * @param _depositNumber Deposit Number for which one wants to claim the yield.
@@ -362,10 +340,10 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
             block.timestamp >= _details.nextTransferTime,
             "[yieldClaim(uint256 _depositNumber)] : Last Transfer check : not enough time has passed since last transfer"
         );
-        // cyclesElapsed * (totalYield / freq) < _detauls.totalYield
+
         require(
             yieldClaimed[msg.sender][_depositNumber] < _details.totalYield,
-            "[yieldClaim(uint256 _depositNumber)] : User Claim Check : total yield already claimed" 
+            "[yieldClaim(uint256 _depositNumber)] : User Claim Check : total yield already claimed"
         );
 
         uint256 _prevClaimed = prevClaimed[msg.sender][_depositNumber];
@@ -374,8 +352,13 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
             usdc.transfer(msg.sender, _details.unlockedYield - _prevClaimed),
             "TRANSFER FAILED"
         );
-        yieldClaimed[msg.sender][_depositNumber] += _details.unlockedYield - _prevClaimed;
-        prevClaimed[msg.sender][_depositNumber] = _details.unlockedYield;
+
+        if (_details.cyclesElapsed < freq) {
+            yieldClaimed[msg.sender][_depositNumber] +=
+                _details.unlockedYield -
+                _prevClaimed;
+            prevClaimed[msg.sender][_depositNumber] = _details.unlockedYield;
+        }
     }
 
     /**
@@ -383,46 +366,6 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
      */
     function getportfoliobalance() public view returns (uint256) {
         return (stakingBalance[msg.sender]);
-    }
-
-    /**
-     * @dev Gets the Deposit Details
-     * @param _depositNumber Deposit Number for which one wants to claim the yield.
-     */
-    function getClaimUSDCDetails(
-        uint256 _depositNumber
-    ) public view returns (ClaimUSDCDetails memory _claimUSDCDetails) {
-        uint256 _balance = userDepositAmount[msg.sender][_depositNumber];
-        uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
-        uint256 _userEndTime = userEndTime[msg.sender][_depositNumber];
-
-        YieldDetails memory _details = yieldClaimDetails(_depositNumber);
-
-        _claimUSDCDetails.balance = _balance;
-        _claimUSDCDetails.yield = _details.totalYield;
-        _claimUSDCDetails.startDate = _userStartTime;
-        _claimUSDCDetails.cyclesRemaining = _details.cyclesLeft;
-        _claimUSDCDetails.yieldGenerated = _details.unlockedYield;
-        _claimUSDCDetails.nextUnlockDate = _userEndTime;
-
-        return _claimUSDCDetails;
-    }
-
-    function getWithdrawUSDCDetails(
-        uint256 _depositNumber
-    ) public view returns (WithdrawUSDCDetails memory _withdrawUSDCDetails) {
-        uint256 _balance = userDepositAmount[msg.sender][_depositNumber];
-        uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
-        uint256 _userEndTime = userEndTime[msg.sender][_depositNumber];
-
-        YieldDetails memory _details = yieldClaimDetails(_depositNumber);
-
-        _withdrawUSDCDetails.balance = _balance;
-        _withdrawUSDCDetails.yield = _details.totalYield;
-        _withdrawUSDCDetails.startDate = _userStartTime;
-        _withdrawUSDCDetails.unlockDate = _userEndTime;
-
-        return _withdrawUSDCDetails;
     }
 
     /**
@@ -457,6 +400,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
 
         userDepositAmount[msg.sender][_depositNumber] = 0;
         withdrawClaimed[_depositNumber] = true;
+        stakingBalance[msg.sender] -= _amountToTransfer;
 
         require(
             usdc.transfer(msg.sender, _amountToTransfer),

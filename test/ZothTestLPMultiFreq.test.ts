@@ -52,7 +52,7 @@ describe("ZothTestLPMultiFreq", function () {
       const reward = "10";
       const freq = "4";
       const poolId = "100001";
-      const coolDownPeriod = (86400 * 4).toString(); // 4 days
+      const hotPeriod = (86400 * 4).toString(); // 4 days
 
       await ZothTestLP.setContractVariables(
         tenure1,
@@ -61,17 +61,24 @@ describe("ZothTestLPMultiFreq", function () {
         reward,
         freq,
         poolId,
-        coolDownPeriod
+        hotPeriod
       );
 
-      const vars = await ZothTestLP.getContractVariables();
-      expect(vars[0]).to.equal("7889229");
-      expect(vars[1]).to.equal("15778458");
-      expect(vars[2]).to.equal("23667687");
-      expect(vars[3]).to.equal("10");
-      expect(vars[4]).to.equal("4");
-      expect(vars[5]).to.equal("100001");
-      expect(vars[6]).to.equal("345600");
+      const _tenure1 = await ZothTestLP.tenure1();
+      const _tenure2 = await ZothTestLP.tenure2();
+      const _tenure3 = await ZothTestLP.tenure3();
+      const _reward = await ZothTestLP.reward();
+      const _freq = await ZothTestLP.freq();
+      const _poolId = await ZothTestLP.poolId();
+      const _hotPeriod = await ZothTestLP.hotPeriod();
+
+      expect(_tenure1).to.equal("7889229");
+      expect(_tenure2).to.equal("15778458");
+      expect(_tenure3).to.equal("23667687");
+      expect(_reward).to.equal("10");
+      expect(_freq).to.equal("4");
+      expect(_poolId).to.equal("100001");
+      expect(_hotPeriod).to.equal("345600");
     });
   });
 
@@ -268,7 +275,7 @@ describe("ZothTestLPMultiFreq", function () {
         "15778458",
         "23667687",
         "12",
-        "4",
+        "1",
         "100001",
         "345600"
       );
@@ -314,7 +321,7 @@ describe("ZothTestLPMultiFreq", function () {
       expect(vars[3]).to.equal("0");
       expect(vars[4]).to.equal("0");
       expect(vars[5]).to.equal("0");
-      expect(vars[6]).to.equal("4");
+      expect(vars[6]).to.equal("1");
       expect(vars[7]).to.greaterThan("1690000000");
     });
   });
