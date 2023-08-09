@@ -9,7 +9,7 @@ import {Roles} from "./Roles.sol";
 import {IERC20} from "./IERC20.sol";
 import {ReentrancyGuard} from "./ReentrancyGuard.sol";
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 /**
  * @author Zoth.io
@@ -310,6 +310,16 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         _yieldDetails.cyclesElapsed = cyclesElapsed;
         _yieldDetails.nextTransferTime = nextTransferTime;
 
+        console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        console.log("balance : ", balance);
+        console.log("totalYield : ", totalYield);
+        console.log("unlockedYield : ", unlockedYield);
+        console.log("lockedYield : ", lockedYield);
+        console.log("cyclesLeft : ", cyclesLeft);
+        console.log("timeLeft : ", timeLeft);
+        console.log("cyclesElapsed : ", cyclesElapsed);
+        console.log("nextTransferTime : ", nextTransferTime);
+
         return _yieldDetails;
     }
 
@@ -353,11 +363,16 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
             "TRANSFER FAILED"
         );
 
+        prevClaimed[msg.sender][_depositNumber] = _details.unlockedYield;
+
+        console.log("Yield to claim : ", _details.unlockedYield - _prevClaimed);
+
         if (_details.cyclesElapsed < freq) {
             yieldClaimed[msg.sender][_depositNumber] +=
                 _details.unlockedYield -
                 _prevClaimed;
-            prevClaimed[msg.sender][_depositNumber] = _details.unlockedYield;
+        } else {
+            yieldClaimed[msg.sender][_depositNumber] = _details.unlockedYield;
         }
     }
 

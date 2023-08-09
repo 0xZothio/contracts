@@ -379,9 +379,13 @@ describe("ZothTestLPMultiFreq", function () {
 
       await ZothTestLP.connect(otherAccount).yieldClaim("1");
 
+      //   await ZothTestLP.connect(otherAccount).yieldClaim("1");
+
+      await ZothTestLP.connect(otherAccount).withdraw("1");
+
       const new_balance_tUSDC = await testUSDC.balanceOf(otherAccount.address);
 
-      expect(new_balance_tUSDC).to.equal("900000012");
+      expect(new_balance_tUSDC).to.equal("1000000012");
     });
     // it("[yieldClaim()] : Reverts the yield claim details if yield is already claimed and not enough time has passed", async () => {
     //   const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
