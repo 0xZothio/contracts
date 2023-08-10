@@ -383,6 +383,19 @@ describe("ZothTestLPMultiFreq", function () {
 
       await ZothTestLP.connect(otherAccount).withdraw("1");
 
+      await ZothTestLP.connect(otherAccount).deposit(
+        ethers.parseUnits("100", 6),
+        1
+      );
+
+      await time.increase(60);
+
+      await ZothTestLP.connect(otherAccount).yieldClaim("2");
+
+      await time.increase(15);
+
+      //   await ZothTestLP.connect(otherAccount).yieldClaim("2");
+
       const new_balance_tUSDC = await testUSDC.balanceOf(otherAccount.address);
 
       expect(new_balance_tUSDC).to.equal("1000000012");

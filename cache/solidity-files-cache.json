@@ -1027,8 +1027,8 @@
       ]
     },
     "/Users/family/Desktop/Zoth/zoth_contracts/contracts/ZothTestLPMultiFreq.sol": {
-      "lastModificationDate": 1691649804876,
-      "contentHash": "739ee42fee3cf284c4af3fbe83be9278",
+      "lastModificationDate": 1691649898966,
+      "contentHash": "34ff42ef1bb6a926241825ae5257e63a",
       "sourceName": "contracts/ZothTestLPMultiFreq.sol",
       "solcConfig": {
         "version": "0.8.18",
@@ -1060,8 +1060,7 @@
         "@openzeppelin/contracts/utils/math/SafeMath.sol",
         "./Roles.sol",
         "./IERC20.sol",
-        "./ReentrancyGuard.sol",
-        "hardhat/console.sol"
+        "./ReentrancyGuard.sol"
       ],
       "versionPragmas": [
         "^0.8.5"

@@ -37,7 +37,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
     mapping(address => mapping(uint256 => uint256)) public cyclesClaimed;
     mapping(address => mapping(uint256 => uint256)) public prevClaimed;
     mapping(address => mapping(uint256 => uint256)) public yieldClaimed;
-    mapping(uint256 => bool) public withdrawClaimed;
+    mapping(address => mapping(uint256 => bool)) public withdrawClaimed;
 
     // Vars for the pool
     uint256 public tenure1;
@@ -218,31 +218,31 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
             // blue
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmZYPhDWWjK3QDxiZJuRwhyAaFYhS1mx8x5uNZfhRnPLEh"
+                "https://gateway.pinata.cloud/ipfs/QmSs6sp1q4GkFozHD5puZhqvmCufRrpTnFV6opveeHjnYn"
             );
         } else if (amount > 10000 * 10 ** 6 && amount <= 25000 * 10 ** 6) {
             // green
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmPV668ZHNhKVxAiTbh3etZYhqaq4jfi8UZoeMjydQZvjF"
+                "https://gateway.pinata.cloud/ipfs/QmP5uZ9RNY9m3MMnh5VSKFdiS2vphL2nNuEW92KBtZioSc"
             );
         } else if (amount > 25000 * 10 ** 6 && amount <= 50000 * 10 ** 6) {
             // pink
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmZz39biRbQ4ADgiLyUhc2yTerwRyB43Rj1ddnD6jfK9KS"
+                "https://gateway.pinata.cloud/ipfs/QmbMgi8bEcBg3Xu5bodxPBgWTNM3ZkRJnmt8UG2RWoWuyT"
             );
         } else if (amount > 50000 * 10 ** 6 && amount <= 100000 * 10 ** 6) {
             // silver
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmfJJo8DGWAVUEDAJvZMySWoZ1SDVJ8vEds9h2TJ5FKTHv"
+                "https://gateway.pinata.cloud/ipfs/QmakQpb2Jk33dPX2C57P5Qemc3Zop6aZPVZDHn2W6btCPd"
             );
         } else {
             // gold
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmQcAaVr54LkSDZoqTxk6TRSnwMHD2jTX6t8VEenWeyvPd"
+                "https://gateway.pinata.cloud/ipfs/QmNXSyWRpwuCY51AZ9gV5kbD3k4YoAxYVTjg6fFbfByDyW"
             );
         }
 
@@ -403,7 +403,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
             "[withdraw(uint256 _depositNumber)] : Loan Tenure is not over"
         );
         require(
-            withdrawClaimed[_depositNumber] == false,
+            withdrawClaimed[msg.sender][_depositNumber] == false,
             "[withdraw(uint256 _depositNumber)] : Loan Tenure is already withdrawed"
         );
         require(
@@ -417,7 +417,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         ];
 
         userDepositAmount[msg.sender][_depositNumber] = 0;
-        withdrawClaimed[_depositNumber] = true;
+        withdrawClaimed[msg.sender][_depositNumber] = true;
         stakingBalance[msg.sender] -= _amountToTransfer;
 
         require(
