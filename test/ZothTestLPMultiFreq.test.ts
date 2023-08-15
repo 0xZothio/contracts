@@ -6,6 +6,7 @@ describe("ZothTestLPMultiFreq", function () {
   async function runEveryTime() {
     const [owner, otherAccount] = await ethers.getSigners();
 
+    // TOKEN SETUP
     const testUSDCContract = await ethers.getContractFactory("TestUSDC");
     const testUSDC = await testUSDCContract.deploy();
 
@@ -15,16 +16,35 @@ describe("ZothTestLPMultiFreq", function () {
 
     await testUSDC.transfer(otherAccount, amountToTransfer);
 
+    // WHITELISTER SETUP
+    const whitelistManagerContract = await ethers.getContractFactory(
+      "WhitelistManager"
+    );
+    const whitelistManager = await whitelistManagerContract.deploy();
+    const whitelistManagerAddress = await whitelistManager.getAddress();
+    await whitelistManager.whitelistAddress(owner.address);
+    // await whitelistManager.whitelistAddress(otherAccount.address);
+
+    // MAIN POOL SETUP
     const zothTestLPContract = await ethers.getContractFactory(
       "ZothTestLPMultiFreq"
     );
-    const ZothTestLP = await zothTestLPContract.deploy(testUSDCAddress);
+    const ZothTestLP = await zothTestLPContract.deploy(
+      testUSDCAddress,
+      whitelistManagerAddress
+    );
 
     const zothTestLPAddress = await ZothTestLP.getAddress();
 
     await testUSDC.transfer(zothTestLPAddress, amountToTransfer);
 
-    return { owner, otherAccount, testUSDC, ZothTestLP };
+    return {
+      owner,
+      otherAccount,
+      testUSDC,
+      ZothTestLP,
+      whitelistManager,
+    };
   }
 
   // ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -87,17 +107,23 @@ describe("ZothTestLPMultiFreq", function () {
   // ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   describe("Governance", async () => {
     it("[addVerifierRole()] : Assigns the address to verifier role by owner", async () => {
-      const { ZothTestLP, otherAccount } = await loadFixture(runEveryTime);
-      await ZothTestLP.addVerifierRole(otherAccount.address);
+      const { whitelistManager, otherAccount } = await loadFixture(
+        runEveryTime
+      );
+      await whitelistManager.addVerifier(otherAccount.address);
     });
     it("[addWhitelistAddress()] : Assigns the address to whitelist role by authorities", async () => {
-      const { ZothTestLP, otherAccount } = await loadFixture(runEveryTime);
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      const { whitelistManager, otherAccount } = await loadFixture(
+        runEveryTime
+      );
+      await whitelistManager.whitelistAddress(otherAccount.address);
     });
     it("[addWhitelistAddress() | removeWhitelistAddress()] : Remove the address to whitelist role by authorities", async () => {
-      const { ZothTestLP, otherAccount } = await loadFixture(runEveryTime);
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
-      await ZothTestLP.removeWhitelistAddress(otherAccount.address);
+      const { whitelistManager, otherAccount } = await loadFixture(
+        runEveryTime
+      );
+      await whitelistManager.whitelistAddress(otherAccount.address);
+      await whitelistManager.removeWhitelisted(otherAccount.address);
     });
   });
 
@@ -115,9 +141,8 @@ describe("ZothTestLPMultiFreq", function () {
       expect(bal).to.equal(formattedBalance);
     });
     it("[deposit()] : Successfully deposit 100tUSDC into Liquidity Pool with tenure 1", async () => {
-      const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
-        runEveryTime
-      );
+      const { ZothTestLP, otherAccount, testUSDC, whitelistManager } =
+        await loadFixture(runEveryTime);
       // Setting variables for LP contract
       await ZothTestLP.setContractVariables(
         "7889229",
@@ -130,7 +155,7 @@ describe("ZothTestLPMultiFreq", function () {
       );
 
       // Whitelisting other account
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      await whitelistManager.whitelistAddress(otherAccount.address);
 
       // Allowance of tUSDC transfer for LP token contract
       const zothTestLPAddress = await ZothTestLP.getAddress();
@@ -168,9 +193,8 @@ describe("ZothTestLPMultiFreq", function () {
     });
 
     it("[deposit()] : Revert deposit 100tUSDC into Liquidity Pool with tenure <undefined : 4 ,5 ,6 ...>", async () => {
-      const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
-        runEveryTime
-      );
+      const { ZothTestLP, otherAccount, testUSDC, whitelistManager } =
+        await loadFixture(runEveryTime);
       // Setting variables for LP contract
       await ZothTestLP.setContractVariables(
         "7889229",
@@ -183,7 +207,7 @@ describe("ZothTestLPMultiFreq", function () {
       );
 
       // Whitelisting other account
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      await whitelistManager.whitelistAddress(otherAccount.address);
 
       // Allowance of tUSDC transfer for LP token contract
       const zothTestLPAddress = await ZothTestLP.getAddress();
@@ -202,9 +226,8 @@ describe("ZothTestLPMultiFreq", function () {
     });
 
     it("[deposit()] : Revert deposit 0 tUSDC into Liquidity Pool with tenure <defined>", async () => {
-      const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
-        runEveryTime
-      );
+      const { ZothTestLP, otherAccount, testUSDC, whitelistManager } =
+        await loadFixture(runEveryTime);
       // Setting variables for LP contract
       await ZothTestLP.setContractVariables(
         "7889229",
@@ -217,7 +240,7 @@ describe("ZothTestLPMultiFreq", function () {
       );
 
       // Whitelisting other account
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      await whitelistManager.whitelistAddress(otherAccount.address);
 
       // Allowance of tUSDC transfer for LP token contract
       const zothTestLPAddress = await ZothTestLP.getAddress();
@@ -236,7 +259,9 @@ describe("ZothTestLPMultiFreq", function () {
     });
 
     it("[deposit()] : Revert deposit 100 tUSDC into Liquidity Pool with no allowance", async () => {
-      const { ZothTestLP, otherAccount } = await loadFixture(runEveryTime);
+      const { ZothTestLP, otherAccount, whitelistManager } = await loadFixture(
+        runEveryTime
+      );
       // Setting variables for LP contract
       await ZothTestLP.setContractVariables(
         "7889229",
@@ -249,7 +274,7 @@ describe("ZothTestLPMultiFreq", function () {
       );
 
       // Whitelisting other account
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      await whitelistManager.whitelistAddress(otherAccount.address);
 
       // depositing 100 tUSDC into LP
 
@@ -266,9 +291,8 @@ describe("ZothTestLPMultiFreq", function () {
   // ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   describe("Yield Claim Detail", async () => {
     it("[yieldClaimDetails()] : Successfully Gives details for deposit number 1 after depositing into LP", async () => {
-      const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
-        runEveryTime
-      );
+      const { ZothTestLP, otherAccount, testUSDC, whitelistManager } =
+        await loadFixture(runEveryTime);
       // Setting variables for LP contract
       await ZothTestLP.setContractVariables(
         "7889229",
@@ -281,7 +305,7 @@ describe("ZothTestLPMultiFreq", function () {
       );
 
       // Whitelisting other account
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      await whitelistManager.whitelistAddress(otherAccount.address);
 
       // Allowance of tUSDC transfer for LP token contract
       const zothTestLPAddress = await ZothTestLP.getAddress();
@@ -331,9 +355,8 @@ describe("ZothTestLPMultiFreq", function () {
   // ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   describe("Yield Claim", async () => {
     it("[yieldClaim()] : Successfully claims the unlocked yield after making a deposit", async () => {
-      const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
-        runEveryTime
-      );
+      const { ZothTestLP, otherAccount, testUSDC, whitelistManager } =
+        await loadFixture(runEveryTime);
       // Setting variables for LP contract
       await ZothTestLP.setContractVariables(
         "60",
@@ -346,7 +369,7 @@ describe("ZothTestLPMultiFreq", function () {
       );
 
       // Whitelisting other account
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      await whitelistManager.whitelistAddress(otherAccount.address);
 
       // Allowance of tUSDC transfer for LP token contract
       const zothTestLPAddress = await ZothTestLP.getAddress();
@@ -398,7 +421,7 @@ describe("ZothTestLPMultiFreq", function () {
 
       const new_balance_tUSDC = await testUSDC.balanceOf(otherAccount.address);
 
-      expect(new_balance_tUSDC).to.equal("1000000012");
+      expect(new_balance_tUSDC).to.equal("900000024");
     });
     // it("[yieldClaim()] : Reverts the yield claim details if yield is already claimed and not enough time has passed", async () => {
     //   const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(

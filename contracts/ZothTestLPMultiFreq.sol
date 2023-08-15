@@ -5,9 +5,10 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {Roles} from "./Roles.sol";
-import {IERC20} from "./IERC20.sol";
-import {ReentrancyGuard} from "./ReentrancyGuard.sol";
+import {Roles} from "./utils/Roles.sol";
+import {IERC20} from "./Interfaces/IERC20.sol";
+import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
+import {IWhitelistManager} from "./Interfaces/IWhitelistManager.sol";
 
 // import "hardhat/console.sol";
 
@@ -23,13 +24,12 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
     uint256 constant SECS_IN_YEAR = 31536000;
 
     IERC20 public immutable usdc;
+    IWhitelistManager public immutable whitelistManager;
     address public immutable owner;
 
     Counters.Counter private _tokenIds;
 
-    Roles.Role private _verifiers;
     Roles.Role private _owners;
-    Roles.Role private _whitelisted;
 
     // Mappings for data storage
     mapping(address => uint256) public stakingBalance;
@@ -67,12 +67,14 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         uint256 nextTransferTime;
     }
 
-    constructor(address _usdcAddress) ERC721("ZothTestLP", "ZUSDC") {
+    constructor(
+        address _usdcAddress,
+        address _whitelistManager
+    ) ERC721("ZothTestLP", "ZUSDC") {
         usdc = IERC20(_usdcAddress);
         owner = msg.sender;
-        _whitelisted.add(msg.sender);
         _owners.add(msg.sender);
-        _verifiers.add(msg.sender);
+        whitelistManager = IWhitelistManager(_whitelistManager);
     }
 
     /**
@@ -82,28 +84,11 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         require(_owners.has(msg.sender), "DOES_NOT_HAVE_OWNER_ROLE");
         _;
     }
-    /**
-     * @dev Checks the _verifiers role for the sender
-     */
-    modifier onlyVerifiers() {
-        require(_verifiers.has(msg.sender), "DOES_NOT_HAVE_VERIFIER_ROLE");
-        _;
-    }
-    /**
-     * @dev Checks the _whitelisted role for the sender
-     */
-    modifier onlyWhitelisted() {
-        require(_whitelisted.has(msg.sender), "USER_IS_NOT_WHITELISTED");
-        _;
-    }
 
-    /**
-     * @dev Checks the _verifier or _owner role for the sender
-     */
-    modifier onlyAuthorities() {
+    modifier onlyWhitelisted() {
         require(
-            _verifiers.has(msg.sender) || _owners.has(msg.sender),
-            "ONLY_AUTHORITIES_ARE_ALLOWED_TO_EXECUTE_THIS_FUNC"
+            whitelistManager.isWhitelisted(msg.sender),
+            "USER_IS_NOT_WHITELIST"
         );
         _;
     }
@@ -134,30 +119,6 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         freq = _freq;
         poolId = _poolId;
         hotPeriod = _hotPeriod;
-    }
-
-    /**
-     * @dev Adds a address to the whitelisted role | only authorities are allowed to execute the function
-     * @param _address Address which is to be whitelisted
-     */
-    function addWhitelistAddress(address _address) external onlyAuthorities {
-        _whitelisted.add(_address);
-    }
-
-    /**
-     * @dev Adds a address to the verifier role | only owners are allowed to execute the function
-     * @param _address Address which is to be added as verifier
-     */
-    function addVerifierRole(address _address) external onlyOwners {
-        _verifiers.add(_address);
-    }
-
-    /**
-     * @dev Removes a address to the whitelisted role | only authorities are allowed to execute the function
-     * @param _address Address which is to be removed from whitelisted role
-     */
-    function removeWhitelistAddress(address _address) external onlyAuthorities {
-        _whitelisted.remove(_address);
     }
 
     /**
@@ -310,16 +271,6 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         _yieldDetails.cyclesElapsed = cyclesElapsed;
         _yieldDetails.nextTransferTime = nextTransferTime;
 
-        // console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-        // console.log("balance : ", balance);
-        // console.log("totalYield : ", totalYield);
-        // console.log("unlockedYield : ", unlockedYield);
-        // console.log("lockedYield : ", lockedYield);
-        // console.log("cyclesLeft : ", cyclesLeft);
-        // console.log("timeLeft : ", timeLeft);
-        // console.log("cyclesElapsed : ", cyclesElapsed);
-        // console.log("nextTransferTime : ", nextTransferTime);
-
         return _yieldDetails;
     }
 
@@ -364,11 +315,6 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         );
 
         prevClaimed[msg.sender][_depositNumber] = _details.unlockedYield;
-
-        // console.log(
-        //     ">> Yield to claim : ",
-        //     _details.unlockedYield - _prevClaimed
-        // );
 
         if (_details.cyclesElapsed < freq) {
             yieldClaimed[msg.sender][_depositNumber] +=

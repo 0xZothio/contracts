@@ -5,9 +5,9 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import {Roles} from "./Roles.sol";
-import {IERC20} from "./IERC20.sol";
-import {ReentrancyGuard} from "./ReentrancyGuard.sol";
+import {Roles} from "./utils/Roles.sol";
+import {IERC20} from "./Interfaces/IERC20.sol";
+import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 
 /**
  * @author Zoth.io
