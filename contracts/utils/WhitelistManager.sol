@@ -47,7 +47,7 @@ contract WhitelistManager {
     }
 
     function addVerifier(address _address) public onlyOwners {
-        _owners.add(_address);
+        _verifiers.add(_address);
     }
 
     function isWhitelisted(address _address) external view returns (bool) {
