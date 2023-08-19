@@ -11,7 +11,7 @@ import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 import {IWhitelistManager} from "./Interfaces/IWhitelistManager.sol";
 
 // import "hardhat/console.sol";
-
+// AAVE USDC : 0xe9DcE89B076BA6107Bb64EF30678efec11939234
 /**
  * @author Zoth.io
  * @notice This contract is a pool contract that inherits the properties of the ERC721 token standard.

@@ -12,6 +12,8 @@ contract WhitelistManager {
 
     constructor() {
         _owners.add(msg.sender);
+        _verifiers.add(msg.sender);
+        _whitelisted.add(msg.sender);
     }
 
     /**
