@@ -107,8 +107,8 @@
       ]
     },
     "/Users/family/Desktop/Zoth/zoth_contracts/contracts/ZothTestLPMultiFreq.sol": {
-      "lastModificationDate": 1692118194022,
-      "contentHash": "775f57781594392509db839487be9bf4",
+      "lastModificationDate": 1692731209874,
+      "contentHash": "455b29ba0ec15e5d2406e29d13fb7bb9",
       "sourceName": "contracts/ZothTestLPMultiFreq.sol",
       "solcConfig": {
         "version": "0.8.18",
@@ -1071,8 +1071,8 @@
       ]
     },
     "/Users/family/Desktop/Zoth/zoth_contracts/contracts/utils/WhitelistManager.sol": {
-      "lastModificationDate": 1692115024774,
-      "contentHash": "142c2fdcbe347e920577f92fab37b4b5",
+      "lastModificationDate": 1692437581489,
+      "contentHash": "6d5741d10d46413c59906edbe20a1868",
       "sourceName": "contracts/utils/WhitelistManager.sol",
       "solcConfig": {
         "version": "0.8.18",

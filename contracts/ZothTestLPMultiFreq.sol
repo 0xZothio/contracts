@@ -47,6 +47,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
     uint256 public freq;
     uint256 public poolId;
     uint256 public hotPeriod;
+    uint256 public cooldownPeriod;
 
     // Mappings for User Deposits
     mapping(address => mapping(uint256 => uint256)) public userStartTime;
@@ -110,7 +111,8 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         uint256 _reward,
         uint256 _freq,
         uint256 _poolId,
-        uint256 _hotPeriod
+        uint256 _hotPeriod,
+        uint256 _coolDownPeriod
     ) external onlyOwners {
         tenure1 = _tenure1;
         tenure2 = _tenure2;
@@ -119,6 +121,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         freq = _freq;
         poolId = _poolId;
         hotPeriod = _hotPeriod;
+        cooldownPeriod = _coolDownPeriod;
     }
 
     /**
@@ -162,9 +165,9 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
 
         // Mapping Updates Deposits
         totalUserDeposits[msg.sender]++;
-        userStartTime[msg.sender][
-            totalUserDeposits[msg.sender]
-        ] = currentTimestamp;
+        userStartTime[msg.sender][totalUserDeposits[msg.sender]] =
+            currentTimestamp +
+            cooldownPeriod;
         userEndTime[msg.sender][totalUserDeposits[msg.sender]] = endLend;
         userDepositAmount[msg.sender][totalUserDeposits[msg.sender]] = amount;
 
@@ -210,6 +213,17 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         return newTokenId;
     }
 
+    function _inCooldown(
+        uint256 _depositNumber
+    ) public view onlyWhitelisted returns (bool) {
+        uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
+        if (block.timestamp > _userStartTime) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     /**
      * @dev Gets the yield claim details
      * @param _depositNumber Deposit Number for which one wants to get the yield details
@@ -225,6 +239,8 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
         uint256 _userEndTime = userEndTime[msg.sender][_depositNumber];
         uint256 balance = userDepositAmount[msg.sender][_depositNumber];
+
+        require(_inCooldown(_depositNumber), "Loan still in cooldown period");
 
         uint256 elapsedTime = block.timestamp - _userStartTime;
         uint256 timeInterval = (_userEndTime - _userStartTime) / freq;

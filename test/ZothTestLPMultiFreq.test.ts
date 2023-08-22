@@ -10,6 +10,8 @@ describe("ZothTestLPMultiFreq", function () {
     const testUSDCContract = await ethers.getContractFactory("TestUSDC");
     const testUSDC = await testUSDCContract.deploy();
 
+    console.log("USDC deployed");
+
     const testUSDCAddress = await testUSDC.getAddress();
 
     const amountToTransfer = ethers.parseUnits("1000", 6);
@@ -22,8 +24,10 @@ describe("ZothTestLPMultiFreq", function () {
     );
     const whitelistManager = await whitelistManagerContract.deploy();
     const whitelistManagerAddress = await whitelistManager.getAddress();
-    await whitelistManager.whitelistAddress(owner.address);
+    // await whitelistManager.whitelistAddress(owner.address);
     // await whitelistManager.whitelistAddress(otherAccount.address);
+
+    console.log("Whitelister deployed");
 
     // MAIN POOL SETUP
     const zothTestLPContract = await ethers.getContractFactory(
@@ -33,6 +37,8 @@ describe("ZothTestLPMultiFreq", function () {
       testUSDCAddress,
       whitelistManagerAddress
     );
+
+    console.log("zothTestLPContract deployed");
 
     const zothTestLPAddress = await ZothTestLP.getAddress();
 
@@ -73,6 +79,7 @@ describe("ZothTestLPMultiFreq", function () {
       const freq = "4";
       const poolId = "100001";
       const hotPeriod = (86400 * 4).toString(); // 4 days
+      const cooldownPeriod = (86400 * 5).toString(); // 5 days
 
       await ZothTestLP.setContractVariables(
         tenure1,
@@ -81,7 +88,8 @@ describe("ZothTestLPMultiFreq", function () {
         reward,
         freq,
         poolId,
-        hotPeriod
+        hotPeriod,
+        cooldownPeriod
       );
 
       const _tenure1 = await ZothTestLP.tenure1();
@@ -91,6 +99,7 @@ describe("ZothTestLPMultiFreq", function () {
       const _freq = await ZothTestLP.freq();
       const _poolId = await ZothTestLP.poolId();
       const _hotPeriod = await ZothTestLP.hotPeriod();
+      const _cooldownPeriod = await ZothTestLP.cooldownPeriod();
 
       expect(_tenure1).to.equal("7889229");
       expect(_tenure2).to.equal("15778458");
@@ -99,6 +108,7 @@ describe("ZothTestLPMultiFreq", function () {
       expect(_freq).to.equal("4");
       expect(_poolId).to.equal("100001");
       expect(_hotPeriod).to.equal("345600");
+      expect(_cooldownPeriod).to.equal("432000");
     });
   });
 
@@ -151,7 +161,8 @@ describe("ZothTestLPMultiFreq", function () {
         "12",
         "4",
         "100001",
-        "345600"
+        "345600",
+        "432000"
       );
 
       // Whitelisting other account
@@ -203,7 +214,8 @@ describe("ZothTestLPMultiFreq", function () {
         "12",
         "4",
         "100001",
-        "345600"
+        "345600",
+        "432000"
       );
 
       // Whitelisting other account
@@ -236,7 +248,8 @@ describe("ZothTestLPMultiFreq", function () {
         "12",
         "4",
         "100001",
-        "345600"
+        "345600",
+        "432000"
       );
 
       // Whitelisting other account
@@ -270,7 +283,8 @@ describe("ZothTestLPMultiFreq", function () {
         "12",
         "4",
         "100001",
-        "345600"
+        "345600",
+        "432000"
       );
 
       // Whitelisting other account
@@ -301,7 +315,8 @@ describe("ZothTestLPMultiFreq", function () {
         "12",
         "1",
         "100001",
-        "345600"
+        "345600",
+        "432000"
       );
 
       // Whitelisting other account
@@ -329,19 +344,19 @@ describe("ZothTestLPMultiFreq", function () {
       );
 
       /**
-        _yieldDetails.balance = balance;
-        _yieldDetails.totalYield = totalYield;
-        _yieldDetails.unlockedYield = unlockedYield;
-        _yieldDetails.lockedYield = lockedYield;
-        _yieldDetails.cyclesLeft = cyclesLeft;
-        _yieldDetails.timeLeft = timeLeft;
-        _yieldDetails.cyclesElapsed = cyclesElapsed;
-        _yieldDetails.nextTransferTime = nextTransferTime;
-         */
+          _yieldDetails.balance = balance;
+          _yieldDetails.totalYield = totalYield;
+          _yieldDetails.unlockedYield = unlockedYield;
+          _yieldDetails.lockedYield = lockedYield;
+          _yieldDetails.cyclesLeft = cyclesLeft;
+          _yieldDetails.timeLeft = timeLeft;
+          _yieldDetails.cyclesElapsed = cyclesElapsed;
+          _yieldDetails.nextTransferTime = nextTransferTime;
+           */
 
       expect(vars[0]).to.equal("100000000");
-      expect(vars[1]).to.equal("3001980");
-      expect(vars[2]).to.equal("3001980");
+      expect(vars[1]).to.equal("2837604");
+      expect(vars[2]).to.equal("2837604");
       expect(vars[3]).to.equal("0");
       expect(vars[4]).to.equal("0");
       expect(vars[5]).to.equal("0");
@@ -359,13 +374,14 @@ describe("ZothTestLPMultiFreq", function () {
         await loadFixture(runEveryTime);
       // Setting variables for LP contract
       await ZothTestLP.setContractVariables(
-        "60",
-        "120",
-        "180",
+        "7889229",
+        "15778458",
+        "23667687",
         "12",
-        "4",
+        "1",
         "100001",
-        "345600"
+        "945600",
+        "432000"
       );
 
       // Whitelisting other account
@@ -385,24 +401,15 @@ describe("ZothTestLPMultiFreq", function () {
         1
       );
 
+      await time.increase(432001);
+
       // increase the timestamp of block after cooldown
-      await time.increase(15);
+      await time.increase(7889229);
 
       await ZothTestLP.connect(otherAccount).yieldClaim("1");
-
-      await time.increase(15);
-
-      await ZothTestLP.connect(otherAccount).yieldClaim("1");
-
-      await time.increase(15);
-
-      await ZothTestLP.connect(otherAccount).yieldClaim("1");
-
-      await time.increase(25);
-
-      await ZothTestLP.connect(otherAccount).yieldClaim("1");
-
       //   await ZothTestLP.connect(otherAccount).yieldClaim("1");
+
+      await time.increase(1);
 
       await ZothTestLP.connect(otherAccount).withdraw("1");
 
@@ -410,6 +417,11 @@ describe("ZothTestLPMultiFreq", function () {
         ethers.parseUnits("100", 6),
         1
       );
+
+      await time.increase(432001);
+
+      // increase the timestamp of block after cooldown
+      await time.increase(7889229);
 
       await time.increase(60);
 
@@ -421,7 +433,7 @@ describe("ZothTestLPMultiFreq", function () {
 
       const new_balance_tUSDC = await testUSDC.balanceOf(otherAccount.address);
 
-      expect(new_balance_tUSDC).to.equal("900000024");
+      expect(new_balance_tUSDC).to.equal("905675208");
     });
     // it("[yieldClaim()] : Reverts the yield claim details if yield is already claimed and not enough time has passed", async () => {
     //   const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
