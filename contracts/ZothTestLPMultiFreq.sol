@@ -71,7 +71,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
     constructor(
         address _usdcAddress,
         address _whitelistManager
-    ) ERC721("ZothTestLP", "ZUSDC") {
+    ) ERC721("ZothInvoiceFactoringPool2", "ZIFP2") {
         usdc = IERC20(_usdcAddress);
         owner = msg.sender;
         _owners.add(msg.sender);
@@ -182,31 +182,31 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
             // blue
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmSs6sp1q4GkFozHD5puZhqvmCufRrpTnFV6opveeHjnYn"
+                "https://gateway.pinata.cloud/ipfs/QmWT5D4M7PhgRMMvm95moM85ea4e6ptc4eQL9YPXsTWWqf"
             );
         } else if (amount > 10000 * 10 ** 6 && amount <= 25000 * 10 ** 6) {
             // green
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmP5uZ9RNY9m3MMnh5VSKFdiS2vphL2nNuEW92KBtZioSc"
+                "https://gateway.pinata.cloud/ipfs/QmY6SXdLsdQCTeJFB77A1kuEJ2HSZidZBsA3mSGh1ad7yG"
             );
         } else if (amount > 25000 * 10 ** 6 && amount <= 50000 * 10 ** 6) {
             // pink
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmbMgi8bEcBg3Xu5bodxPBgWTNM3ZkRJnmt8UG2RWoWuyT"
+                "https://gateway.pinata.cloud/ipfs/QmQJxvSshn64T3B6xWqk4LdbGgJWUjKEwkCjmDNaMgJEDF"
             );
         } else if (amount > 50000 * 10 ** 6 && amount <= 100000 * 10 ** 6) {
             // silver
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmakQpb2Jk33dPX2C57P5Qemc3Zop6aZPVZDHn2W6btCPd"
+                "https://gateway.pinata.cloud/ipfs/QmNnfsr8NRfWCTBHnfHMN6ecru7kxgnnP6ByRET4UmAiM6"
             );
         } else {
             // gold
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmNXSyWRpwuCY51AZ9gV5kbD3k4YoAxYVTjg6fFbfByDyW"
+                "https://gateway.pinata.cloud/ipfs/QmZnMPkcsbQcuMbr8tt8oC7EQinbGEog8RtTLG2gvT5V7Q"
             );
         }
 

@@ -71,15 +71,24 @@ describe("ZothTestLPMultiFreq", function () {
       const { ZothTestLP } = await loadFixture(runEveryTime);
 
       // Setting contract variables
-      const tenure1 = (2629743 * 3).toString(); // 3 months
-      const tenure2 = (2629743 * 6).toString(); // 6 months
-      const tenure3 = (2629743 * 9).toString(); // 9 months
+      const tenure1 = (2629743 * 1).toString(); // 1 months
+      const tenure2 = (2629743 * 2).toString(); // 2 months
+      const tenure3 = (2629743 * 3).toString(); // 3 months
 
-      const reward = "10";
-      const freq = "4";
-      const poolId = "100001";
-      const hotPeriod = (86400 * 4).toString(); // 4 days
+      const reward = "12";
+      const freq = "1";
+      const poolId = "2";
+      const hotPeriod = (86400 * 7).toString(); // 7 days
       const cooldownPeriod = (86400 * 5).toString(); // 5 days
+
+      console.log(tenure1);
+      console.log(tenure2);
+      console.log(tenure3);
+      console.log(reward);
+      console.log(freq);
+      console.log(poolId);
+      console.log(hotPeriod);
+      console.log(cooldownPeriod);
 
       await ZothTestLP.setContractVariables(
         tenure1,
