@@ -4,11 +4,10 @@ pragma solidity ^0.8.5;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import {Roles} from "./Roles.sol";
-import {IERC20} from "./IERC20.sol";
-import {ReentrancyGuard} from "./ReentrancyGuard.sol";
-
-// import "hardhat/console.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {Roles} from "../utils/Roles.sol";
+import {IERC20} from "../Interfaces/IERC20.sol";
+import {ReentrancyGuard} from "../utils/ReentrancyGuard.sol";
 
 /**
  * @author Zoth.io
@@ -18,6 +17,8 @@ import {ReentrancyGuard} from "./ReentrancyGuard.sol";
 contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
     using Roles for Roles.Role;
     using Counters for Counters.Counter;
+    using SafeMath for uint256;
+    uint256 constant SECS_IN_YEAR = 31536000;
 
     IERC20 public immutable usdc;
     address public immutable owner;
@@ -31,16 +32,17 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
     // Mappings for data storage
     mapping(address => uint256) public stakingBalance;
     mapping(address => uint256) public balances;
-    mapping(address => mapping(uint256 => uint256)) public cyclesClaimed;
+    mapping(uint256 => bool) public yieldClaimed;
+    mapping(uint256 => bool) public withdrawClaimed;
 
     // Vars for the pool
     uint256 public tenure1;
     uint256 public tenure2;
     uint256 public tenure3;
-    uint16 public reward;
+    uint256 public reward;
     uint256 public freq;
     uint256 public poolId;
-    uint256 public coolDownPeriod;
+    uint256 public hotPeriod;
 
     // Mappings for User Deposits
     mapping(address => mapping(uint256 => uint256)) public userStartTime;
@@ -59,14 +61,20 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
         uint256 timeLeft;
     }
 
-    struct DepositDetails {
+    struct ClaimUSDCDetails {
         uint256 balance;
-        uint256 depositNumber;
-        uint256 startTime;
-        uint256 endTime;
-        uint256 coolDownPeriod;
-        uint256 reward;
-        uint256 poolId;
+        uint256 yield;
+        uint256 startDate;
+        uint256 cyclesRemaining;
+        uint256 yieldGenerated;
+        uint256 nextUnlockDate;
+    }
+
+    struct WithdrawUSDCDetails {
+        uint256 balance;
+        uint256 yield;
+        uint256 startDate;
+        uint256 unlockDate;
     }
 
     constructor(address _usdcAddress) ERC721("ZothTestLP", "ZUSDC") {
@@ -118,16 +126,16 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
      * @param _reward reward percentage of the pool
      * @param _freq frequency of the withdrawl
      * @param _poolId Pool Identifier number
-     * @param _coolDownPeriod Cooldown Period after which rewards start to be calculated
+     * @param _hotPeriod Cooldown Period after which rewards can be claimed
      */
     function setContractVariables(
         uint256 _tenure1,
         uint256 _tenure2,
         uint256 _tenure3,
-        uint16 _reward,
+        uint256 _reward,
         uint256 _freq,
         uint256 _poolId,
-        uint256 _coolDownPeriod
+        uint256 _hotPeriod
     ) external onlyOwners {
         tenure1 = _tenure1;
         tenure2 = _tenure2;
@@ -135,33 +143,25 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
         reward = _reward;
         freq = _freq;
         poolId = _poolId;
-        coolDownPeriod = _coolDownPeriod;
+        hotPeriod = _hotPeriod;
     }
 
     /**
-     * @dev Get the variables for the pool cycle - Tenures, Reward Rate, Freq, PoolId and Cooldownperiod
+     * @dev Get the variables for the pool cycle - Tenures, Reward Rate, Freq, PoolId and hotPeriod
      * @return _tenure1 tenure 1 variable
      * @return _tenure2 tenure 2 variable
      * @return _tenure3 tenure 3 variable
      * @return _reward reward percentage of the pool
      * @return _freq frequency of the withdrawl
      * @return _poolId Pool Identifier number
-     * @return _coolDownPeriod Cooldown Period after which rewards start to be calculated
+     * @return _hotPeriod Cooldown Period after which rewards start to be calculated
      */
     function getContractVariables()
         external
         view
-        returns (uint256, uint256, uint256, uint16, uint256, uint256, uint256)
+        returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256)
     {
-        return (
-            tenure1,
-            tenure2,
-            tenure3,
-            reward,
-            freq,
-            poolId,
-            coolDownPeriod
-        );
+        return (tenure1, tenure2, tenure3, reward, freq, poolId, hotPeriod);
     }
 
     /**
@@ -190,7 +190,7 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
 
     /**
      * @dev Creates a deposit to the pool
-     * @param amount Amount of USDC that user wants to deposit to the pool
+     * @param amount Amount of USDC that user wants to deposit to the pool in 6 decimals | 10 USDC = 10 * 10 ** 6
      * @param _tenureOption Tenure Option
      * conditions :
      * tenureOption = 1 | 2 | 3
@@ -215,7 +215,7 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
             "[deposit(uint256 amount,uint256 _tenureOption)] : USDC allowance check : Contract not authorized to spend tokens"
         );
         require(
-            usdc.transferFrom(msg.sender, address(this), amount * 10 ** 6),
+            usdc.transferFrom(msg.sender, address(this), amount),
             "[deposit(uint256 amount,uint256 _tenureOption)] : Transfer Check : Transfer failed"
         );
 
@@ -225,12 +225,13 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
             ? tenure1
             : ((_tenureOption == 2) ? tenure2 : tenure3);
 
-        uint256 startLend = currentTimestamp + coolDownPeriod;
-        uint256 endLend = startLend + tenure;
+        uint256 endLend = currentTimestamp + tenure;
 
         // Mapping Updates Deposits
         totalUserDeposits[msg.sender]++;
-        userStartTime[msg.sender][totalUserDeposits[msg.sender]] = startLend;
+        userStartTime[msg.sender][
+            totalUserDeposits[msg.sender]
+        ] = currentTimestamp;
         userEndTime[msg.sender][totalUserDeposits[msg.sender]] = endLend;
         userDepositAmount[msg.sender][totalUserDeposits[msg.sender]] = amount;
 
@@ -241,25 +242,25 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
         uint256 newTokenId = _tokenIds.current();
         _mint(msg.sender, newTokenId);
 
-        if (amount <= 10000) {
+        if (amount <= 10000 * 10 ** 6) {
             // blue
             _setTokenURI(
                 newTokenId,
                 "https://gateway.pinata.cloud/ipfs/QmZYPhDWWjK3QDxiZJuRwhyAaFYhS1mx8x5uNZfhRnPLEh"
             );
-        } else if (amount > 10000 && amount <= 25000) {
+        } else if (amount > 10000 * 10 ** 6 && amount <= 25000 * 10 ** 6) {
             // green
             _setTokenURI(
                 newTokenId,
                 "https://gateway.pinata.cloud/ipfs/QmPV668ZHNhKVxAiTbh3etZYhqaq4jfi8UZoeMjydQZvjF"
             );
-        } else if (amount > 25000 && amount <= 50000) {
+        } else if (amount > 25000 * 10 ** 6 && amount <= 50000 * 10 ** 6) {
             // pink
             _setTokenURI(
                 newTokenId,
                 "https://gateway.pinata.cloud/ipfs/QmZz39biRbQ4ADgiLyUhc2yTerwRyB43Rj1ddnD6jfK9KS"
             );
-        } else if (amount > 50000 && amount <= 100000) {
+        } else if (amount > 50000 * 10 ** 6 && amount <= 100000 * 10 ** 6) {
             // silver
             _setTokenURI(
                 newTokenId,
@@ -289,152 +290,62 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
         uint256 _depositNumber
     ) public view onlyWhitelisted returns (YieldDetails memory _yieldDetails) {
         uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
-
         uint256 _userEndTime = userEndTime[msg.sender][_depositNumber];
-
         uint256 balance = userDepositAmount[msg.sender][_depositNumber];
+
         require(
             balance > 0,
             "[yieldClaimDetails(uint256 _depositNumber)] : Staking Balance check : staking balance cannot be 0"
         );
 
-        require(
-            block.timestamp > _userStartTime,
-            "[yieldClaimDetails(uint256 _depositNumber)] : Cooldown check : Your deposit is still in cooldown"
-        );
+        uint256 _timeFraction = ((_userEndTime - _userStartTime) * (10 ** 6)) /
+            SECS_IN_YEAR;
 
-        uint256 elapsedTime = block.timestamp - _userStartTime;
-
-        require(
-            elapsedTime > 0,
-            "[yieldClaimDetails(uint256 _depositNumber)] : Elapsed Time check : elapsed time must be greater than 0"
-        );
-
-        uint256 timeInterval = (_userEndTime - _userStartTime) / freq;
-
-        require(
-            timeInterval > 0,
-            "[yieldClaimDetails(uint256 _depositNumber)] : Time Interval check : time interval must be greater than 0"
-        );
-
-        uint256 cyclesElapsed = elapsedTime / timeInterval;
-
-        require(
-            cyclesElapsed <= freq,
-            "[yieldClaimDetails(uint256 _depositNumber)] : Cycles Elapsed check : maximum frequency reached"
-        );
-
-        uint256 totalYield = (((_userEndTime - _userStartTime) *
-            reward *
-            balance) / (31536000 * 100));
-
-        uint256 _cyclesClaimed = _getCyclesClaimed(_depositNumber);
-
-        if (cyclesElapsed > 0) {
-            uint256 lastTransferTime = (_userStartTime +
-                (_cyclesClaimed * timeInterval));
-            uint256 nextTransferTime = lastTransferTime + timeInterval;
-            if (block.timestamp < lastTransferTime) {
-                nextTransferTime = lastTransferTime;
-            }
-            require(
-                block.timestamp >= nextTransferTime,
-                "[yieldClaimDetails(uint256 _depositNumber)] : Last Transfer check : not enough time has passed since last transfer"
-            );
-        }
-        uint256 unlockedYield = ((cyclesElapsed * totalYield) / freq);
-
-        uint256 cyclesLeft = freq - cyclesElapsed;
-        uint256 lockedYield = totalYield - unlockedYield;
-        uint256 timeLeft = cyclesLeft * timeInterval;
+        uint256 totalYield = (balance * reward * _timeFraction) / (10 ** 8);
 
         _yieldDetails.balance = balance;
         _yieldDetails.totalYield = totalYield;
-        _yieldDetails.unlockedYield = unlockedYield;
-        _yieldDetails.lockedYield = lockedYield;
-        _yieldDetails.cyclesLeft = cyclesLeft;
-        _yieldDetails.timeLeft = timeLeft;
+        if (block.timestamp >= _userEndTime) {
+            _yieldDetails.unlockedYield = totalYield;
+        } else {
+            _yieldDetails.unlockedYield = 0;
+        }
+        _yieldDetails.lockedYield = totalYield;
+        _yieldDetails.cyclesLeft = 1;
+        if (block.timestamp <= _userEndTime) {
+            _yieldDetails.timeLeft = _userEndTime - block.timestamp;
+        } else {
+            _yieldDetails.timeLeft = 0;
+        }
 
         return _yieldDetails;
     }
 
     /**
-     * @dev Returns the number of cycles
-     * @param _depositNumber Deposit Number for which one wants to claim the yield.
-     */
-
-    function _getCyclesClaimed(
-        uint256 _depositNumber
-    ) private view returns (uint256) {
-        return cyclesClaimed[msg.sender][_depositNumber];
-    }
-
-    /**
      * @dev Allows user to claim the yield
      * @param _depositNumber Deposit Number for which one wants to claim the yield.
-     * conditions :
-     * balance > 0
-     * elapsedTime > 0
-     * timeInterval > 0
-     * cyclesElapsed <= freq
      */
     function yieldClaim(uint256 _depositNumber) public onlyWhitelisted {
-        uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
         uint256 _userEndTime = userEndTime[msg.sender][_depositNumber];
 
-        uint256 balance = userDepositAmount[msg.sender][_depositNumber];
+        YieldDetails memory _details = yieldClaimDetails(_depositNumber);
+        yieldClaimed[_depositNumber] = true;
         require(
-            balance > 0,
-            "[yieldClaim(uint256 _depositNumber)] : Staking Balance check : staking balance cannot be 0"
+            block.timestamp >= _userEndTime,
+            "[yieldClaimDetails(uint256 _depositNumber)] : End Time check"
+        );
+        require(
+            yieldClaimed[_depositNumber] == false,
+            "[yieldClaimDetails(uint256 _depositNumber)] : Yield Claim check : yield already claimed"
+        );
+        require(
+            block.timestamp <= _userEndTime + hotPeriod,
+            "[yieldClaimDetails(uint256 _depositNumber)] : Deposit Hot period check"
         );
 
         require(
-            block.timestamp > _userStartTime,
-            "[yieldClaim(uint256 _depositNumber)] : Cooldown check : Your deposit is still in cooldown"
-        );
-
-        uint256 elapsedTime = block.timestamp - _userStartTime;
-        require(
-            elapsedTime > 0,
-            "[yieldClaim(uint256 _depositNumber)] : Elapsed Time check : elapsed time must be greater than 0"
-        );
-
-        uint256 timeInterval = (_userEndTime - _userStartTime) / freq;
-        require(
-            timeInterval > 0,
-            "[yieldClaim(uint256 _depositNumber)] : Time Interval Check : time interval must be greater than 0"
-        );
-
-        uint256 cyclesElapsed = elapsedTime / timeInterval;
-        require(
-            cyclesElapsed <= freq,
-            "[yieldClaim(uint256 _depositNumber)] : Cycles Elapsed check : maximum frequency reached"
-        );
-
-        uint256 unlockedYield = 0;
-        uint256 totalYield = ((_userEndTime - _userStartTime) *
-            reward *
-            balance) / (31536000 * 100);
-
-        if (cyclesElapsed > 0) {
-            uint256 lastTransferTime = _userStartTime +
-                (cyclesClaimed[msg.sender][_depositNumber] * timeInterval);
-            uint256 nextTransferTime = lastTransferTime + timeInterval;
-            if (block.timestamp < lastTransferTime) {
-                nextTransferTime = lastTransferTime;
-            }
-            require(
-                block.timestamp >= nextTransferTime,
-                "[yieldClaim(uint256 _depositNumber)] : Last Transfer check : not enough time has passed since last transfer"
-            );
-
-            unlockedYield = (cyclesElapsed * totalYield) / freq;
-            cyclesClaimed[msg.sender][_depositNumber] += cyclesElapsed;
-        }
-
-        require(
-            usdc.transfer(msg.sender, unlockedYield * 10 ** 6),
-            "TRANSFER FAILED"
+            usdc.transfer(msg.sender, _details.totalYield),
+            "yieldClaim(uint256 _depositNumber) : TRANSFER FAILED"
         );
     }
 
@@ -445,26 +356,49 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
         return (stakingBalance[msg.sender]);
     }
 
-    /**
-     * @dev Gets the Deposit Details
-     * @param _depositNumber Deposit Number for which one wants to claim the yield.
-     */
-    function getDepositDetails(
+    function getClaimUSDCDetails(
         uint256 _depositNumber
-    ) public view returns (DepositDetails memory _depositDetails) {
+    ) public view returns (ClaimUSDCDetails memory _claimUSDCDetails) {
         uint256 _balance = userDepositAmount[msg.sender][_depositNumber];
         uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
         uint256 _userEndTime = userEndTime[msg.sender][_depositNumber];
 
-        _depositDetails.balance = _balance;
-        _depositDetails.depositNumber = _depositNumber;
-        _depositDetails.startTime = _userStartTime;
-        _depositDetails.endTime = _userEndTime;
-        _depositDetails.coolDownPeriod = coolDownPeriod;
-        _depositDetails.reward = reward;
-        _depositDetails.poolId = poolId;
+        YieldDetails memory _details = yieldClaimDetails(_depositNumber);
 
-        return _depositDetails;
+        _claimUSDCDetails.balance = _balance;
+        _claimUSDCDetails.yield = _details.totalYield;
+        _claimUSDCDetails.startDate = _userStartTime;
+        _claimUSDCDetails.cyclesRemaining = 1;
+        _claimUSDCDetails.yieldGenerated = _details.unlockedYield;
+        _claimUSDCDetails.nextUnlockDate = _userEndTime;
+
+        return _claimUSDCDetails;
+    }
+
+    /**
+    struct WithdrawUSDCDetails {
+        uint256 balance;
+        uint256 yield;
+        uint256 startDate;
+        uint256 unlockDate;
+    }
+    */
+
+    function getWithdrawUSDCDetails(
+        uint256 _depositNumber
+    ) public view returns (WithdrawUSDCDetails memory _withdrawUSDCDetails) {
+        uint256 _balance = userDepositAmount[msg.sender][_depositNumber];
+        uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
+        uint256 _userEndTime = userEndTime[msg.sender][_depositNumber];
+
+        YieldDetails memory _details = yieldClaimDetails(_depositNumber);
+
+        _withdrawUSDCDetails.balance = _balance;
+        _withdrawUSDCDetails.yield = _details.totalYield;
+        _withdrawUSDCDetails.startDate = _userStartTime;
+        _withdrawUSDCDetails.unlockDate = _userEndTime;
+
+        return _withdrawUSDCDetails;
     }
 
     /**
@@ -483,16 +417,26 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
             block.timestamp >= userEndTime[msg.sender][_depositNumber],
             "[withdraw(uint256 _depositNumber)] : Loan Tenure is not over"
         );
+        require(
+            withdrawClaimed[_depositNumber] == false,
+            "[withdraw(uint256 _depositNumber)] : Loan Tenure is already withdrawed"
+        );
+        require(
+            block.timestamp <=
+                userEndTime[msg.sender][_depositNumber] + hotPeriod,
+            "[yieldClaimDetails(uint256 _depositNumber)] : Deposit Hot period check"
+        );
 
         uint256 _amountToTransfer = userDepositAmount[msg.sender][
             _depositNumber
         ];
 
         userDepositAmount[msg.sender][_depositNumber] = 0;
+        withdrawClaimed[_depositNumber] = true;
 
         require(
-            usdc.transfer(msg.sender, _amountToTransfer * 10 ** 6),
-            "TRANSFER FAILED"
+            usdc.transfer(msg.sender, _amountToTransfer),
+            "withdraw(uint256 _depositNumber) : TRANSFER FAILED"
         );
     }
 
@@ -506,6 +450,20 @@ contract ZothTestLP is ERC721URIStorage, ReentrancyGuard {
     function _transfer(uint256 _amount, address _receiver) public onlyOwners {
         uint256 contractBalance = usdc.balanceOf(address(this));
         require(contractBalance >= _amount, "Insufficient Balance");
-        require(usdc.transfer(_receiver, _amount * 10 ** 6), "TRANSFER FAILED");
+        require(usdc.transfer(_receiver, _amount), "TRANSFER FAILED");
     }
 }
+
+/**
+"7889229",
+        "15778458",
+        "23667687",
+        "12",
+        "1",
+        "100001",
+        "345600"
+
+100000000 ,1 ,1690030403 ,1697919632 ,345600 ,12 ,100001
+
+ 100000000 ,3001980 ,0 ,3001980 ,1 ,7889105
+*/

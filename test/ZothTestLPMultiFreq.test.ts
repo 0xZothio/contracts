@@ -2,12 +2,15 @@ import { expect } from "chai";
 import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { ethers } from "hardhat";
 
-describe("ZothTestLP", function () {
+describe("ZothTestLPMultiFreq", function () {
   async function runEveryTime() {
     const [owner, otherAccount] = await ethers.getSigners();
 
+    // TOKEN SETUP
     const testUSDCContract = await ethers.getContractFactory("TestUSDC");
     const testUSDC = await testUSDCContract.deploy();
+
+    console.log("USDC deployed");
 
     const testUSDCAddress = await testUSDC.getAddress();
 
@@ -15,14 +18,39 @@ describe("ZothTestLP", function () {
 
     await testUSDC.transfer(otherAccount, amountToTransfer);
 
-    const zothTestLPContract = await ethers.getContractFactory("ZothTestLP");
-    const ZothTestLP = await zothTestLPContract.deploy(testUSDCAddress);
+    // WHITELISTER SETUP
+    const whitelistManagerContract = await ethers.getContractFactory(
+      "WhitelistManager"
+    );
+    const whitelistManager = await whitelistManagerContract.deploy();
+    const whitelistManagerAddress = await whitelistManager.getAddress();
+    // await whitelistManager.whitelistAddress(owner.address);
+    // await whitelistManager.whitelistAddress(otherAccount.address);
+
+    console.log("Whitelister deployed");
+
+    // MAIN POOL SETUP
+    const zothTestLPContract = await ethers.getContractFactory(
+      "ZothTestLPMultiFreq"
+    );
+    const ZothTestLP = await zothTestLPContract.deploy(
+      testUSDCAddress,
+      whitelistManagerAddress
+    );
+
+    console.log("zothTestLPContract deployed");
 
     const zothTestLPAddress = await ZothTestLP.getAddress();
 
     await testUSDC.transfer(zothTestLPAddress, amountToTransfer);
 
-    return { owner, otherAccount, testUSDC, ZothTestLP };
+    return {
+      owner,
+      otherAccount,
+      testUSDC,
+      ZothTestLP,
+      whitelistManager,
+    };
   }
 
   // ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -43,14 +71,24 @@ describe("ZothTestLP", function () {
       const { ZothTestLP } = await loadFixture(runEveryTime);
 
       // Setting contract variables
-      const tenure1 = (2629743 * 3).toString(); // 3 months
-      const tenure2 = (2629743 * 6).toString(); // 6 months
-      const tenure3 = (2629743 * 9).toString(); // 9 months
+      const tenure1 = (2629743 * 1).toString(); // 1 months
+      const tenure2 = (2629743 * 2).toString(); // 2 months
+      const tenure3 = (2629743 * 3).toString(); // 3 months
 
-      const reward = "10";
-      const freq = "4";
-      const poolId = "100001";
-      const coolDownPeriod = (86400 * 4).toString(); // 4 days
+      const reward = "12";
+      const freq = "1";
+      const poolId = "2";
+      const hotPeriod = (86400 * 7).toString(); // 7 days
+      const cooldownPeriod = (86400 * 5).toString(); // 5 days
+
+      console.log(tenure1);
+      console.log(tenure2);
+      console.log(tenure3);
+      console.log(reward);
+      console.log(freq);
+      console.log(poolId);
+      console.log(hotPeriod);
+      console.log(cooldownPeriod);
 
       await ZothTestLP.setContractVariables(
         tenure1,
@@ -59,17 +97,27 @@ describe("ZothTestLP", function () {
         reward,
         freq,
         poolId,
-        coolDownPeriod
+        hotPeriod,
+        cooldownPeriod
       );
 
-      const vars = await ZothTestLP.getContractVariables();
-      expect(vars[0]).to.equal("7889229");
-      expect(vars[1]).to.equal("15778458");
-      expect(vars[2]).to.equal("23667687");
-      expect(vars[3]).to.equal("10");
-      expect(vars[4]).to.equal("4");
-      expect(vars[5]).to.equal("100001");
-      expect(vars[6]).to.equal("345600");
+      const _tenure1 = await ZothTestLP.tenure1();
+      const _tenure2 = await ZothTestLP.tenure2();
+      const _tenure3 = await ZothTestLP.tenure3();
+      const _reward = await ZothTestLP.reward();
+      const _freq = await ZothTestLP.freq();
+      const _poolId = await ZothTestLP.poolId();
+      const _hotPeriod = await ZothTestLP.hotPeriod();
+      const _cooldownPeriod = await ZothTestLP.cooldownPeriod();
+
+      expect(_tenure1).to.equal("7889229");
+      expect(_tenure2).to.equal("15778458");
+      expect(_tenure3).to.equal("23667687");
+      expect(_reward).to.equal("10");
+      expect(_freq).to.equal("4");
+      expect(_poolId).to.equal("100001");
+      expect(_hotPeriod).to.equal("345600");
+      expect(_cooldownPeriod).to.equal("432000");
     });
   });
 
@@ -78,17 +126,23 @@ describe("ZothTestLP", function () {
   // ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   describe("Governance", async () => {
     it("[addVerifierRole()] : Assigns the address to verifier role by owner", async () => {
-      const { ZothTestLP, otherAccount } = await loadFixture(runEveryTime);
-      await ZothTestLP.addVerifierRole(otherAccount.address);
+      const { whitelistManager, otherAccount } = await loadFixture(
+        runEveryTime
+      );
+      await whitelistManager.addVerifier(otherAccount.address);
     });
     it("[addWhitelistAddress()] : Assigns the address to whitelist role by authorities", async () => {
-      const { ZothTestLP, otherAccount } = await loadFixture(runEveryTime);
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      const { whitelistManager, otherAccount } = await loadFixture(
+        runEveryTime
+      );
+      await whitelistManager.whitelistAddress(otherAccount.address);
     });
     it("[addWhitelistAddress() | removeWhitelistAddress()] : Remove the address to whitelist role by authorities", async () => {
-      const { ZothTestLP, otherAccount } = await loadFixture(runEveryTime);
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
-      await ZothTestLP.removeWhitelistAddress(otherAccount.address);
+      const { whitelistManager, otherAccount } = await loadFixture(
+        runEveryTime
+      );
+      await whitelistManager.whitelistAddress(otherAccount.address);
+      await whitelistManager.removeWhitelisted(otherAccount.address);
     });
   });
 
@@ -106,22 +160,22 @@ describe("ZothTestLP", function () {
       expect(bal).to.equal(formattedBalance);
     });
     it("[deposit()] : Successfully deposit 100tUSDC into Liquidity Pool with tenure 1", async () => {
-      const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
-        runEveryTime
-      );
+      const { ZothTestLP, otherAccount, testUSDC, whitelistManager } =
+        await loadFixture(runEveryTime);
       // Setting variables for LP contract
       await ZothTestLP.setContractVariables(
         "7889229",
         "15778458",
         "23667687",
         "12",
-        "1",
+        "4",
         "100001",
-        "345600"
+        "345600",
+        "432000"
       );
 
       // Whitelisting other account
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      await whitelistManager.whitelistAddress(otherAccount.address);
 
       // Allowance of tUSDC transfer for LP token contract
       const zothTestLPAddress = await ZothTestLP.getAddress();
@@ -159,22 +213,22 @@ describe("ZothTestLP", function () {
     });
 
     it("[deposit()] : Revert deposit 100tUSDC into Liquidity Pool with tenure <undefined : 4 ,5 ,6 ...>", async () => {
-      const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
-        runEveryTime
-      );
+      const { ZothTestLP, otherAccount, testUSDC, whitelistManager } =
+        await loadFixture(runEveryTime);
       // Setting variables for LP contract
       await ZothTestLP.setContractVariables(
         "7889229",
         "15778458",
         "23667687",
         "12",
-        "1",
+        "4",
         "100001",
-        "345600"
+        "345600",
+        "432000"
       );
 
       // Whitelisting other account
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      await whitelistManager.whitelistAddress(otherAccount.address);
 
       // Allowance of tUSDC transfer for LP token contract
       const zothTestLPAddress = await ZothTestLP.getAddress();
@@ -193,22 +247,22 @@ describe("ZothTestLP", function () {
     });
 
     it("[deposit()] : Revert deposit 0 tUSDC into Liquidity Pool with tenure <defined>", async () => {
-      const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
-        runEveryTime
-      );
+      const { ZothTestLP, otherAccount, testUSDC, whitelistManager } =
+        await loadFixture(runEveryTime);
       // Setting variables for LP contract
       await ZothTestLP.setContractVariables(
         "7889229",
         "15778458",
         "23667687",
         "12",
-        "1",
+        "4",
         "100001",
-        "345600"
+        "345600",
+        "432000"
       );
 
       // Whitelisting other account
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      await whitelistManager.whitelistAddress(otherAccount.address);
 
       // Allowance of tUSDC transfer for LP token contract
       const zothTestLPAddress = await ZothTestLP.getAddress();
@@ -227,20 +281,23 @@ describe("ZothTestLP", function () {
     });
 
     it("[deposit()] : Revert deposit 100 tUSDC into Liquidity Pool with no allowance", async () => {
-      const { ZothTestLP, otherAccount } = await loadFixture(runEveryTime);
+      const { ZothTestLP, otherAccount, whitelistManager } = await loadFixture(
+        runEveryTime
+      );
       // Setting variables for LP contract
       await ZothTestLP.setContractVariables(
         "7889229",
         "15778458",
         "23667687",
         "12",
-        "1",
+        "4",
         "100001",
-        "345600"
+        "345600",
+        "432000"
       );
 
       // Whitelisting other account
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      await whitelistManager.whitelistAddress(otherAccount.address);
 
       // depositing 100 tUSDC into LP
 
@@ -257,9 +314,8 @@ describe("ZothTestLP", function () {
   // ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   describe("Yield Claim Detail", async () => {
     it("[yieldClaimDetails()] : Successfully Gives details for deposit number 1 after depositing into LP", async () => {
-      const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
-        runEveryTime
-      );
+      const { ZothTestLP, otherAccount, testUSDC, whitelistManager } =
+        await loadFixture(runEveryTime);
       // Setting variables for LP contract
       await ZothTestLP.setContractVariables(
         "7889229",
@@ -268,11 +324,12 @@ describe("ZothTestLP", function () {
         "12",
         "1",
         "100001",
-        "345600"
+        "345600",
+        "432000"
       );
 
       // Whitelisting other account
-      await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      await whitelistManager.whitelistAddress(otherAccount.address);
 
       // Allowance of tUSDC transfer for LP token contract
       const zothTestLPAddress = await ZothTestLP.getAddress();
@@ -289,139 +346,148 @@ describe("ZothTestLP", function () {
       );
 
       // increase the timestamp of block after cooldown
-      //   await time.increaseTo(1698883539);
+      await time.increase(7889229);
 
       const vars = await ZothTestLP.connect(otherAccount).yieldClaimDetails(
         "1"
       );
 
+      /**
+          _yieldDetails.balance = balance;
+          _yieldDetails.totalYield = totalYield;
+          _yieldDetails.unlockedYield = unlockedYield;
+          _yieldDetails.lockedYield = lockedYield;
+          _yieldDetails.cyclesLeft = cyclesLeft;
+          _yieldDetails.timeLeft = timeLeft;
+          _yieldDetails.cyclesElapsed = cyclesElapsed;
+          _yieldDetails.nextTransferTime = nextTransferTime;
+           */
+
       expect(vars[0]).to.equal("100000000");
-      expect(vars[1]).to.equal("3001980");
-      expect(vars[2]).to.equal("0");
-      expect(vars[3]).to.equal("3001980");
-      expect(vars[4]).to.equal("1");
-      expect(vars[5]).to.equal("7889229");
+      expect(vars[1]).to.equal("2837604");
+      expect(vars[2]).to.equal("2837604");
+      expect(vars[3]).to.equal("0");
+      expect(vars[4]).to.equal("0");
+      expect(vars[5]).to.equal("0");
+      expect(vars[6]).to.equal("1");
+      expect(vars[7]).to.greaterThan("1690000000");
     });
   });
-  //     it("[yieldClaimDetails()] : Reverts the details for deposit number 1 after depositing into LP because of deposit in cooldown period", async () => {
-  //       const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
-  //         runEveryTime
-  //       );
-  //       // Setting variables for LP contract
-  //       await ZothTestLP.setContractVariables(
-  //         "7889229",
-  //         "15778458",
-  //         "23667687",
-  //         "10",
-  //         "4",
-  //         "100001",
-  //         "345600"
-  //       );
 
-  //       // Whitelisting other account
-  //       await ZothTestLP.addWhitelistAddress(otherAccount.address);
-
-  //       // Allowance of tUSDC transfer for LP token contract
-  //       const zothTestLPAddress = await ZothTestLP.getAddress();
-  //       const spender_amount = ethers.parseUnits("1000000000", 6);
-  //       await testUSDC
-  //         .connect(otherAccount)
-  //         .approve(zothTestLPAddress, spender_amount);
-
-  //       // depositing 100 tUSDC into LP
-
-  //       await ZothTestLP.connect(otherAccount).deposit("100", 1);
-
-  //       await expect(
-  //         ZothTestLP.connect(otherAccount).yieldClaimDetails("1")
-  //       ).to.be.revertedWith(
-  //         "[yieldClaimDetails(uint256 _depositNumber)] : Cooldown check : Your deposit is still in cooldown"
-  //       );
-  //     });
-  //   });
   // ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   // ! YIELD CLAIM TESTS
   // ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  //   describe("Yield Claim", async () => {
-  //     it("[yieldClaim()] : Successfully claims the unlocked yield after making a deposit", async () => {
-  //       const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
-  //         runEveryTime
-  //       );
-  //       // Setting variables for LP contract
-  //       await ZothTestLP.setContractVariables(
-  //         "7889229",
-  //         "15778458",
-  //         "23667687",
-  //         "10",
-  //         "4",
-  //         "100001",
-  //         "345600"
-  //       );
+  describe("Yield Claim", async () => {
+    it("[yieldClaim()] : Successfully claims the unlocked yield after making a deposit", async () => {
+      const { ZothTestLP, otherAccount, testUSDC, whitelistManager } =
+        await loadFixture(runEveryTime);
+      // Setting variables for LP contract
+      await ZothTestLP.setContractVariables(
+        "7889229",
+        "15778458",
+        "23667687",
+        "12",
+        "1",
+        "100001",
+        "945600",
+        "432000"
+      );
 
-  //       // Whitelisting other account
-  //       await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      // Whitelisting other account
+      await whitelistManager.whitelistAddress(otherAccount.address);
 
-  //       // Allowance of tUSDC transfer for LP token contract
-  //       const zothTestLPAddress = await ZothTestLP.getAddress();
-  //       const spender_amount = ethers.parseUnits("1000000000", 6);
-  //       await testUSDC
-  //         .connect(otherAccount)
-  //         .approve(zothTestLPAddress, spender_amount);
+      // Allowance of tUSDC transfer for LP token contract
+      const zothTestLPAddress = await ZothTestLP.getAddress();
+      const spender_amount = ethers.parseUnits("1000000000", 6);
+      await testUSDC
+        .connect(otherAccount)
+        .approve(zothTestLPAddress, spender_amount);
 
-  //       // depositing 100 tUSDC into LP
+      // depositing 100 tUSDC into LP
 
-  //       await ZothTestLP.connect(otherAccount).deposit("100", 1);
+      await ZothTestLP.connect(otherAccount).deposit(
+        ethers.parseUnits("100", 6),
+        1
+      );
 
-  //       // increase the timestamp of block after cooldown
-  //       await time.increaseTo(1698883539);
+      await time.increase(432001);
 
-  //       await ZothTestLP.connect(otherAccount).yieldClaim("1");
+      // increase the timestamp of block after cooldown
+      await time.increase(7889229);
 
-  //       const new_balance_tUSDC = await testUSDC.balanceOf(otherAccount.address);
+      await ZothTestLP.connect(otherAccount).yieldClaim("1");
+      //   await ZothTestLP.connect(otherAccount).yieldClaim("1");
 
-  //       expect(new_balance_tUSDC).to.equal("902000000");
-  //     });
-  //     it("[yieldClaim()] : Reverts the yield claim details if yield is already claimed and not enough time has passed", async () => {
-  //       const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
-  //         runEveryTime
-  //       );
-  //       // Setting variables for LP contract
-  //       await ZothTestLP.setContractVariables(
-  //         "7889229",
-  //         "15778458",
-  //         "23667687",
-  //         "10",
-  //         "4",
-  //         "100001",
-  //         "345600"
-  //       );
+      await time.increase(1);
 
-  //       // Whitelisting other account
-  //       await ZothTestLP.addWhitelistAddress(otherAccount.address);
+      await ZothTestLP.connect(otherAccount).withdraw("1");
 
-  //       // Allowance of tUSDC transfer for LP token contract
-  //       const zothTestLPAddress = await ZothTestLP.getAddress();
-  //       const spender_amount = ethers.parseUnits("1000000000", 6);
-  //       await testUSDC
-  //         .connect(otherAccount)
-  //         .approve(zothTestLPAddress, spender_amount);
+      await ZothTestLP.connect(otherAccount).deposit(
+        ethers.parseUnits("100", 6),
+        1
+      );
 
-  //       // depositing 100 tUSDC into LP
+      await time.increase(432001);
 
-  //       await ZothTestLP.connect(otherAccount).deposit("100", 1);
+      // increase the timestamp of block after cooldown
+      await time.increase(7889229);
 
-  //       // increase the timestamp of block after cooldown
-  //       await time.increaseTo(1698883539);
+      await time.increase(60);
 
-  //       await ZothTestLP.connect(otherAccount).yieldClaim("1");
+      await ZothTestLP.connect(otherAccount).yieldClaim("2");
 
-  //       await expect(
-  //         ZothTestLP.connect(otherAccount).yieldClaim("1")
-  //       ).to.be.revertedWith(
-  //         "[yieldClaim(uint256 _depositNumber)] : Last Transfer check : not enough time has passed since last transfer"
-  //       );
-  //     });
-  //   });
+      await time.increase(15);
+
+      //   await ZothTestLP.connect(otherAccount).yieldClaim("2");
+
+      const new_balance_tUSDC = await testUSDC.balanceOf(otherAccount.address);
+
+      expect(new_balance_tUSDC).to.equal("905675208");
+    });
+    // it("[yieldClaim()] : Reverts the yield claim details if yield is already claimed and not enough time has passed", async () => {
+    //   const { ZothTestLP, otherAccount, testUSDC } = await loadFixture(
+    //     runEveryTime
+    //   );
+    //   // Setting variables for LP contract
+    //   await ZothTestLP.setContractVariables(
+    //     "7889229",
+    //     "15778458",
+    //     "23667687",
+    //     "12",
+    //     "4",
+    //     "100001",
+    //     "345600"
+    //   );
+
+    //   // Whitelisting other account
+    //   await ZothTestLP.addWhitelistAddress(otherAccount.address);
+
+    //   // Allowance of tUSDC transfer for LP token contract
+    //   const zothTestLPAddress = await ZothTestLP.getAddress();
+    //   const spender_amount = ethers.parseUnits("1000000000", 6);
+    //   await testUSDC
+    //     .connect(otherAccount)
+    //     .approve(zothTestLPAddress, spender_amount);
+
+    //   // depositing 100 tUSDC into LP
+
+    //   await ZothTestLP.connect(otherAccount).deposit(
+    //     ethers.parseUnits("100", 6),
+    //     1
+    //   );
+
+    //   // increase the timestamp of block after cooldown
+    //   await time.increaseTo(1698883539);
+
+    //   await ZothTestLP.connect(otherAccount).yieldClaim("1");
+
+    //   await expect(
+    //     ZothTestLP.connect(otherAccount).yieldClaim("1")
+    //   ).to.be.revertedWith(
+    //     "[yieldClaim(uint256 _depositNumber)] : Last Transfer check : not enough time has passed since last transfer"
+    //   );
+    // });
+  });
   // ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   // ! WITHDRAW TESTS
   // ! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -435,7 +501,7 @@ describe("ZothTestLP", function () {
   //         "7889229",
   //         "15778458",
   //         "23667687",
-  //         "10",
+  //         "12",
   //         "4",
   //         "100001",
   //         "345600"
@@ -453,10 +519,13 @@ describe("ZothTestLP", function () {
 
   //       // depositing 100 tUSDC into LP
 
-  //       await ZothTestLP.connect(otherAccount).deposit("100", 1);
+  //       await ZothTestLP.connect(otherAccount).deposit(
+  //         ethers.parseUnits("100", 6),
+  //         1
+  //       );
 
   //       // increase the timestamp of block to end time of the deposit
-  //       await time.increaseTo(1698883539);
+  //       await time.increaseTo(1698383539);
 
   //       // Claim yield
   //       await ZothTestLP.connect(otherAccount).yieldClaim("1");
@@ -465,7 +534,7 @@ describe("ZothTestLP", function () {
 
   //       const new_bal = await testUSDC.balanceOf(otherAccount.address);
 
-  //       expect(new_bal).to.equal("1002000000");
+  //       expect(new_bal).to.equal("1003001980");
   //     });
 
   //     it("[withdraw()] : Revert withdraw if end time is not reached", async () => {
@@ -477,7 +546,7 @@ describe("ZothTestLP", function () {
   //         "7889229",
   //         "15778458",
   //         "23667687",
-  //         "10",
+  //         "12",
   //         "4",
   //         "100001",
   //         "345600"
@@ -495,7 +564,10 @@ describe("ZothTestLP", function () {
 
   //       // depositing 100 tUSDC into LP
 
-  //       await ZothTestLP.connect(otherAccount).deposit("100", 1);
+  //       await ZothTestLP.connect(otherAccount).deposit(
+  //         ethers.parseUnits("100", 6),
+  //         1
+  //       );
 
   //       await expect(
   //         ZothTestLP.connect(otherAccount).withdraw("1")
