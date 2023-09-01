@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "../Interfaces/IERC20.sol";
 import {ReentrancyGuard} from "../utils/ReentrancyGuard.sol";
-import {IAccessControl} from "../Interfaces/IAccessControl.sol";
+import {IWhitelistManager} from "../Interfaces/IWhitelistManager.sol";
 
 // import "hardhat/console.sol";
 // AAVE USDC : 0xe9DcE89B076BA6107Bb64EF30678efec11939234
@@ -22,7 +22,7 @@ contract ZothPool is ERC721URIStorage, ReentrancyGuard {
     uint256 constant SECS_IN_YEAR = 31536000;
 
     IERC20 public immutable usdc;
-    IAccessControl public immutable accessControl;
+    IWhitelistManager public immutable whitelistManager;
     address public immutable owner;
 
     Counters.Counter private _tokenIds;
@@ -66,24 +66,24 @@ contract ZothPool is ERC721URIStorage, ReentrancyGuard {
 
     constructor(
         address _usdcAddress,
-        address _accessControl
+        address _whitelistManager
     ) ERC721("ZothInvoiceFactoringPool2", "ZIFP2") {
         usdc = IERC20(_usdcAddress);
         owner = msg.sender;
-        accessControl = IAccessControl(_accessControl);
+        whitelistManager = IWhitelistManager(_whitelistManager);
     }
 
     /**
      * @dev Checks the _owners role for the sender
      */
     modifier onlyOwners() {
-        require(accessControl.isOwner(msg.sender), "DOES_NOT_HAVE_OWNER_ROLE");
+        require(owner == msg.sender, "DOES_NOT_HAVE_OWNER_ROLE");
         _;
     }
 
     modifier onlyWhitelisted() {
         require(
-            accessControl.isWhitelisted(msg.sender),
+            whitelistManager.isWhitelisted(msg.sender),
             "USER_IS_NOT_WHITELIST"
         );
         _;
