@@ -107,8 +107,8 @@
       ]
     },
     "/Users/family/Desktop/Zoth/zoth_contracts/contracts/ZothTestLPMultiFreq.sol": {
-      "lastModificationDate": 1692731209874,
-      "contentHash": "455b29ba0ec15e5d2406e29d13fb7bb9",
+      "lastModificationDate": 1692953846649,
+      "contentHash": "441dad50198bc8f9775f19d52d5709bd",
       "sourceName": "contracts/ZothTestLPMultiFreq.sol",
       "solcConfig": {
         "version": "0.8.18",
