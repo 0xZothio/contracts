@@ -6,12 +6,12 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "../Interfaces/IERC20.sol";
-import {ReentrancyGuard} from "../utils/ReentrancyGuard.sol";
 import {IWhitelistManager} from "../Interfaces/IWhitelistManager.sol";
 import {IZothPool} from "../Interfaces/IZothPool.sol";
 
 // import "hardhat/console.sol";
 // AAVE USDC : 0xe9DcE89B076BA6107Bb64EF30678efec11939234
+// INSPIRED BY : polytrade finance
 /**
  * @author Zoth.io
  * @notice This contract is a pool contract that inherits the properties of the ERC721 token standard.
@@ -424,191 +424,43 @@ contract ZothPool is ERC721URIStorage, IZothPool {
         return rateRounds[_currentRateRound].stableApr;
     }
 
-    // function _inCooldown(
-    //     uint256 _depositNumber
-    // ) public view onlyWhitelisted returns (bool) {
-    //     uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
-    //     if (block.timestamp > _userStartTime) {
-    //         return true;
-    //     } else {
-    //         return false;
-    //     }
-    // }
+    /**
+     * @dev Refer : IZothPool : getActiveDeposits
+     */
+    function getActiveDeposits(
+        address lender
+    ) external view returns (uint256[] memory) {
+        Lender storage lenderData = lenders[lender];
+        uint256 actives = _activeCount(lender);
+        uint256 j;
+        uint256[] memory activeDeposits = new uint256[](actives);
+        for (uint256 i = lenderData.startId; i < lenderData.currentId; ) {
+            if (lenderData.deposits[i].amount != 0) activeDeposits[j++] = i;
+            unchecked {
+                ++i;
+            }
+        }
+        return activeDeposits;
+    }
 
-    // /**
-    //  * @dev Gets the yield claim details
-    //  * @param _depositNumber Deposit Number for which one wants to get the yield details
-    //  * conditions :
-    //  * balance > 0
-    //  * elapsedTime > 0
-    //  * timeInterval > 0
-    //  * cyclesElapsed <= freq
-    //  */
-    // function yieldClaimDetails(
-    //     uint256 _depositNumber
-    // ) public view onlyWhitelisted returns (YieldDetails memory _yieldDetails) {
-    //     uint256 _userStartTime = userStartTime[msg.sender][_depositNumber];
-    //     uint256 _userEndTime = userEndTime[msg.sender][_depositNumber];
-    //     uint256 balance = userDepositAmount[msg.sender][_depositNumber];
-
-    //     require(_inCooldown(_depositNumber), "Loan still in cooldown period");
-
-    //     uint256 elapsedTime = block.timestamp - _userStartTime;
-    //     uint256 timeInterval = (_userEndTime - _userStartTime) / freq;
-    //     uint256 cyclesElapsed = elapsedTime / timeInterval;
-
-    //     uint256 _timeFraction = ((_userEndTime - _userStartTime) * (10 ** 6)) /
-    //         SECS_IN_YEAR;
-
-    //     uint256 totalYield = (balance * reward * _timeFraction) / (10 ** 8);
-
-    //     uint256 unlockedYield = 0;
-
-    //     uint256 _cyclesClaimed = _getCyclesClaimed(_depositNumber);
-
-    //     uint256 nextTransferTime = 0;
-
-    //     if (cyclesElapsed > 0) {
-    //         uint256 lastTransferTime = (_userStartTime +
-    //             (_cyclesClaimed * timeInterval));
-    //         nextTransferTime = lastTransferTime + timeInterval;
-    //         if (block.timestamp < lastTransferTime) {
-    //             nextTransferTime = lastTransferTime;
-    //         }
-    //         unlockedYield = ((cyclesElapsed * totalYield) / freq);
-    //     }
-
-    //     uint256 cyclesLeft;
-    //     uint256 lockedYield;
-    //     if (freq >= cyclesElapsed && totalYield >= unlockedYield) {
-    //         cyclesLeft = freq - cyclesElapsed;
-    //         lockedYield = totalYield - unlockedYield;
-    //     } else {
-    //         unlockedYield = totalYield;
-    //         nextTransferTime = _userEndTime;
-    //     }
-    //     uint256 timeLeft = cyclesLeft * timeInterval;
-
-    //     _yieldDetails.balance = balance;
-    //     _yieldDetails.totalYield = totalYield;
-    //     _yieldDetails.unlockedYield = unlockedYield;
-    //     _yieldDetails.lockedYield = lockedYield;
-    //     _yieldDetails.cyclesLeft = cyclesLeft;
-    //     _yieldDetails.timeLeft = timeLeft;
-    //     _yieldDetails.cyclesElapsed = cyclesElapsed;
-    //     _yieldDetails.nextTransferTime = nextTransferTime;
-
-    //     return _yieldDetails;
-    // }
-
-    // /**
-    //  * @dev Returns the number of cycles
-    //  * @param _depositNumber Deposit Number for which one wants to claim the yield.
-    //  */
-
-    // function _getCyclesClaimed(
-    //     uint256 _depositNumber
-    // ) private view returns (uint256) {
-    //     return cyclesClaimed[msg.sender][_depositNumber];
-    // }
-
-    // /**
-    //  * @dev Allows user to claim the yield
-    //  * @param _depositNumber Deposit Number for which one wants to claim the yield.
-    //  * conditions :
-    //  * balance > 0
-    //  * elapsedTime > 0
-    //  * timeInterval > 0
-    //  * cyclesElapsed <= freq
-    //  */
-    // function yieldClaim(uint256 _depositNumber) public onlyWhitelisted {
-    //     YieldDetails memory _details = yieldClaimDetails(_depositNumber);
-
-    //     require(
-    //         block.timestamp >= _details.nextTransferTime,
-    //         "[yieldClaim(uint256 _depositNumber)] : Last Transfer check : not enough time has passed since last transfer"
-    //     );
-
-    //     require(
-    //         yieldClaimed[msg.sender][_depositNumber] < _details.totalYield,
-    //         "[yieldClaim(uint256 _depositNumber)] : User Claim Check : total yield already claimed"
-    //     );
-
-    //     uint256 _prevClaimed = prevClaimed[msg.sender][_depositNumber];
-    //     cyclesClaimed[msg.sender][_depositNumber] += 1;
-    //     require(
-    //         usdc.transfer(msg.sender, _details.unlockedYield - _prevClaimed),
-    //         "TRANSFER FAILED"
-    //     );
-
-    //     prevClaimed[msg.sender][_depositNumber] = _details.unlockedYield;
-
-    //     if (_details.cyclesElapsed < freq) {
-    //         yieldClaimed[msg.sender][_depositNumber] +=
-    //             _details.unlockedYield -
-    //             _prevClaimed;
-    //     } else {
-    //         yieldClaimed[msg.sender][_depositNumber] = _details.unlockedYield;
-    //     }
-    // }
-
-    // /**
-    //  * @dev Get the total portfolio balance ivensted in the pool
-    //  */
-    // function getportfoliobalance() public view returns (uint256) {
-    //     return (stakingBalance[msg.sender]);
-    // }
-
-    // /**
-    //  * @dev Allows user withdraw the total pool amount in deposit
-    //  * @param _depositNumber Deposit Number for which one wants to claim the yield.
-    //  * conditions :
-    //  * deposit > 0
-    //  * block.timestamp >= end tenure of the pool deposit
-    //  */
-    // function withdraw(uint256 _depositNumber) public onlyWhitelisted {
-    //     require(
-    //         userDepositAmount[msg.sender][_depositNumber] > 0,
-    //         "[withdraw(uint256 _depositNumber)] : Insufficient balance in staking amount."
-    //     );
-    //     require(
-    //         block.timestamp >= userEndTime[msg.sender][_depositNumber],
-    //         "[withdraw(uint256 _depositNumber)] : Loan Tenure is not over"
-    //     );
-    //     require(
-    //         withdrawClaimed[msg.sender][_depositNumber] == false,
-    //         "[withdraw(uint256 _depositNumber)] : Loan Tenure is already withdrawed"
-    //     );
-    //     require(
-    //         block.timestamp <=
-    //             userEndTime[msg.sender][_depositNumber] + hotPeriod,
-    //         "[yieldClaimDetails(uint256 _depositNumber)] : Deposit Hot period check"
-    //     );
-
-    //     uint256 _amountToTransfer = userDepositAmount[msg.sender][
-    //         _depositNumber
-    //     ];
-
-    //     userDepositAmount[msg.sender][_depositNumber] = 0;
-    //     withdrawClaimed[msg.sender][_depositNumber] = true;
-    //     stakingBalance[msg.sender] -= _amountToTransfer;
-
-    //     require(
-    //         usdc.transfer(msg.sender, _amountToTransfer),
-    //         "withdraw(uint256 _depositNumber) : TRANSFER FAILED"
-    //     );
-    // }
-
-    // /**
-    //  * @dev Allows the owners to transfer the funds from the contract to any reciever
-    //  * @param _amount Amount you want to withdraw
-    //  * @param _receiver Reciever account
-    //  * conditions :
-    //  * contract balance >= amount
-    //  */
-    // function _transfer(uint256 _amount, address _receiver) public onlyOwners {
-    //     uint256 contractBalance = usdc.balanceOf(address(this));
-    //     require(contractBalance >= _amount, "Insufficient Balance");
-    //     require(usdc.transfer(_receiver, _amount * 10 ** 6), "TRANSFER FAILED");
-    // }
+    /**
+     * @dev Calculates number of active deposits by lender
+     * @dev Loops through all deposits from start and end and updates count
+     * @param _lender, address of lender
+     */
+    function _activeCount(address _lender) private view returns (uint256) {
+        uint256 count;
+        Lender storage lenderData = lenders[_lender];
+        for (uint256 i = lenderData.startId; i < lenderData.currentId; ) {
+            if (lenderData.deposits[i].amount != 0) {
+                unchecked {
+                    ++count;
+                }
+            }
+            unchecked {
+                ++i;
+            }
+        }
+        return count;
+    }
 }

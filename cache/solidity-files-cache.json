@@ -106,50 +106,6 @@
         "IERC20"
       ]
     },
-    "/Users/family/Desktop/Zoth/zoth_contracts/contracts/ZothTestLPMultiFreq.sol": {
-      "lastModificationDate": 1692953846649,
-      "contentHash": "441dad50198bc8f9775f19d52d5709bd",
-      "sourceName": "contracts/ZothTestLPMultiFreq.sol",
-      "solcConfig": {
-        "version": "0.8.18",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
-        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        "@openzeppelin/contracts/utils/Counters.sol",
-        "@openzeppelin/contracts/utils/math/SafeMath.sol",
-        "./utils/Roles.sol",
-        "./Interfaces/IERC20.sol",
-        "./utils/ReentrancyGuard.sol",
-        "./Interfaces/IWhitelistManager.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.5"
-      ],
-      "artifacts": [
-        "ZothTestLPMultiFreq"
-      ]
-    },
     "/Users/family/Desktop/Zoth/zoth_contracts/contracts/utils/Roles.sol": {
       "lastModificationDate": 1692113879322,
       "contentHash": "79841075baaa41800daceb8569487c11",
@@ -803,49 +759,6 @@
         "IERC4906"
       ]
     },
-    "/Users/family/Desktop/Zoth/zoth_contracts/contracts/ZothTestLP.sol": {
-      "lastModificationDate": 1692113981798,
-      "contentHash": "7aa1b0293e7b366881d084083933a462",
-      "sourceName": "contracts/ZothTestLP.sol",
-      "solcConfig": {
-        "version": "0.8.18",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
-        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        "@openzeppelin/contracts/utils/Counters.sol",
-        "@openzeppelin/contracts/utils/math/SafeMath.sol",
-        "./utils/Roles.sol",
-        "./Interfaces/IERC20.sol",
-        "./utils/ReentrancyGuard.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.5"
-      ],
-      "artifacts": [
-        "ZothTestLP"
-      ]
-    },
     "/Users/family/Desktop/Zoth/zoth_contracts/node_modules/@openzeppelin/contracts/access/AccessControl.sol": {
       "lastModificationDate": 1688236868503,
       "contentHash": "a2b1ec38a8dad325a596f926890772b8",
@@ -1032,44 +945,6 @@
         "IERC20Metadata"
       ]
     },
-    "/Users/family/Desktop/Zoth/zoth_contracts/contracts/TestUSDC.sol": {
-      "lastModificationDate": 1688879456247,
-      "contentHash": "0b0105a63830545c75e294cbcb343fd8",
-      "sourceName": "contracts/TestUSDC.sol",
-      "solcConfig": {
-        "version": "0.8.18",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-        "@openzeppelin/contracts/access/AccessControl.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.9"
-      ],
-      "artifacts": [
-        "TestUSDC"
-      ]
-    },
     "/Users/family/Desktop/Zoth/zoth_contracts/contracts/utils/WhitelistManager.sol": {
       "lastModificationDate": 1692437581489,
       "contentHash": "6d5741d10d46413c59906edbe20a1868",
@@ -1140,6 +1015,318 @@
       ],
       "artifacts": [
         "console"
+      ]
+    },
+    "/Users/family/Desktop/Zoth/zoth_contracts/contracts/Interfaces/IAccessControl.sol": {
+      "lastModificationDate": 1693600245833,
+      "contentHash": "e8849d71c816ce3b4312844820d29056",
+      "sourceName": "contracts/Interfaces/IAccessControl.sol",
+      "solcConfig": {
+        "version": "0.8.18",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IAccessControl"
+      ]
+    },
+    "/Users/family/Desktop/Zoth/zoth_contracts/contracts/V3/DataManager.sol": {
+      "lastModificationDate": 1693600245837,
+      "contentHash": "37b69888a509bf554b0ed8119051e1ce",
+      "sourceName": "contracts/V3/DataManager.sol",
+      "solcConfig": {
+        "version": "0.8.18",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Interfaces/IAccessControl.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.5"
+      ],
+      "artifacts": [
+        "DataManager"
+      ]
+    },
+    "/Users/family/Desktop/Zoth/zoth_contracts/contracts/V3/ZothPool.sol": {
+      "lastModificationDate": 1694269317504,
+      "contentHash": "5c7976881abe238d87c8680ee46de09f",
+      "sourceName": "contracts/V3/ZothPool.sol",
+      "solcConfig": {
+        "version": "0.8.18",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
+        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "@openzeppelin/contracts/utils/Counters.sol",
+        "@openzeppelin/contracts/utils/math/SafeMath.sol",
+        "../Interfaces/IERC20.sol",
+        "../Interfaces/IWhitelistManager.sol",
+        "../Interfaces/IZothPool.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.5"
+      ],
+      "artifacts": [
+        "ZothPool"
+      ]
+    },
+    "/Users/family/Desktop/Zoth/zoth_contracts/contracts/Interfaces/IZothPool.sol": {
+      "lastModificationDate": 1694269265202,
+      "contentHash": "59c77373afb15897ec9c6421a5825f33",
+      "sourceName": "contracts/Interfaces/IZothPool.sol",
+      "solcConfig": {
+        "version": "0.8.18",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.5"
+      ],
+      "artifacts": [
+        "IZothPool"
+      ]
+    },
+    "/Users/family/Desktop/Zoth/zoth_contracts/contracts/tokens/TestUSDC.sol": {
+      "lastModificationDate": 1693600245841,
+      "contentHash": "0b0105a63830545c75e294cbcb343fd8",
+      "sourceName": "contracts/tokens/TestUSDC.sol",
+      "solcConfig": {
+        "version": "0.8.18",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+        "@openzeppelin/contracts/access/AccessControl.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.9"
+      ],
+      "artifacts": [
+        "TestUSDC"
+      ]
+    },
+    "/Users/family/Desktop/Zoth/zoth_contracts/contracts/V2/ZothTestLPMultiFreq.sol": {
+      "lastModificationDate": 1693600245836,
+      "contentHash": "0cd98e10000a65c0851bf73b388f9b37",
+      "sourceName": "contracts/V2/ZothTestLPMultiFreq.sol",
+      "solcConfig": {
+        "version": "0.8.18",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
+        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "@openzeppelin/contracts/utils/Counters.sol",
+        "@openzeppelin/contracts/utils/math/SafeMath.sol",
+        "../utils/Roles.sol",
+        "../Interfaces/IERC20.sol",
+        "../utils/ReentrancyGuard.sol",
+        "../Interfaces/IWhitelistManager.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.5"
+      ],
+      "artifacts": [
+        "ZothTestLPMultiFreq"
+      ]
+    },
+    "/Users/family/Desktop/Zoth/zoth_contracts/contracts/V1/ZothTestLP.sol": {
+      "lastModificationDate": 1693600245835,
+      "contentHash": "62e404d0b3d932a150b92d4766d24913",
+      "sourceName": "contracts/V1/ZothTestLP.sol",
+      "solcConfig": {
+        "version": "0.8.18",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
+        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "@openzeppelin/contracts/utils/Counters.sol",
+        "@openzeppelin/contracts/utils/math/SafeMath.sol",
+        "../utils/Roles.sol",
+        "../Interfaces/IERC20.sol",
+        "../utils/ReentrancyGuard.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.5"
+      ],
+      "artifacts": [
+        "ZothTestLP"
+      ]
+    },
+    "/Users/family/Desktop/Zoth/zoth_contracts/contracts/utils/AccessControl.sol": {
+      "lastModificationDate": 1693600245842,
+      "contentHash": "db0a29e7908d044166d9329694f4a488",
+      "sourceName": "contracts/utils/AccessControl.sol",
+      "solcConfig": {
+        "version": "0.8.18",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./Roles.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.5"
+      ],
+      "artifacts": [
+        "AccessControl"
       ]
     }
   }

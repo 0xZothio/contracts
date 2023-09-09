@@ -94,4 +94,12 @@ interface IZothPool {
      * @dev Returns the base apr in the current rate cycle
      */
     function getBaseApr() external view returns (uint256);
+
+    /**
+     * @dev returns an id array of the active deposits for a lender
+     * @param lender Represents the address of lender
+     */
+    function getActiveDeposits(
+        address lender
+    ) external view returns (uint256[] memory);
 }
