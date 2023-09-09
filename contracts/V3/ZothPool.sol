@@ -374,9 +374,7 @@ contract ZothPool is ERC721URIStorage, IZothPool {
     }
 
     /**
-     * @dev Updates the startId and currentId of deposits with lokcing period
-     * @dev Loops through all deposits from start and end and updates id
-     * @dev Called after a deposit has been withdrawn
+     * @dev Updates the startId and currentId of deposits with locking period
      * @param _lender, address of lender
      */
     function _updateId(address _lender) private {
