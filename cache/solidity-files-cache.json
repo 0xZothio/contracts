@@ -1090,8 +1090,8 @@
       ]
     },
     "/Users/family/Desktop/Zoth/zoth_contracts/contracts/V3/ZothPool.sol": {
-      "lastModificationDate": 1694269317504,
-      "contentHash": "5c7976881abe238d87c8680ee46de09f",
+      "lastModificationDate": 1694269415901,
+      "contentHash": "9bf2ac50b64f00e4fa33f83778ef89b2",
       "sourceName": "contracts/V3/ZothPool.sol",
       "solcConfig": {
         "version": "0.8.18",
@@ -1206,8 +1206,8 @@
       ]
     },
     "/Users/family/Desktop/Zoth/zoth_contracts/contracts/V2/ZothTestLPMultiFreq.sol": {
-      "lastModificationDate": 1693600245836,
-      "contentHash": "0cd98e10000a65c0851bf73b388f9b37",
+      "lastModificationDate": 1694326080599,
+      "contentHash": "3ea288c22471955c073de942281d0bff",
       "sourceName": "contracts/V2/ZothTestLPMultiFreq.sol",
       "solcConfig": {
         "version": "0.8.18",
