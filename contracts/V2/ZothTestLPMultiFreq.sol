@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.5;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -11,7 +11,7 @@ import {ReentrancyGuard} from "../utils/ReentrancyGuard.sol";
 import {IWhitelistManager} from "../Interfaces/IWhitelistManager.sol";
 
 // import "hardhat/console.sol";
-// AAVE USDC : 0xe9DcE89B076BA6107Bb64EF30678efec11939234
+// AAVE USDC : 0xe9DcE89B076BA6107Bb64EF30678efec11939234 [FOR_TEST]
 /**
  * @author Zoth.io
  * @notice This contract is a pool contract that inherits the properties of the ERC721 token standard.
@@ -256,7 +256,10 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         uint256 _cyclesClaimed = _getCyclesClaimed(_depositNumber);
 
         uint256 nextTransferTime = 0;
-
+        // * >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        // Check to see if cycles elapsed are greater than zero in order to cover the integer overflow case.
+        // -> When cycles elapsed is zero and yield generated is zero
+        // * >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         if (cyclesElapsed > 0) {
             uint256 lastTransferTime = (_userStartTime +
                 (_cyclesClaimed * timeInterval));
@@ -269,6 +272,11 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
 
         uint256 cyclesLeft;
         uint256 lockedYield;
+        // * >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        // Check to see the frequency and totalYield check
+        // -> To prevent the integer overflow in cyclesLeft & lockedYield variable
+        // -> Returning default values otherwise
+        // * >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         if (freq >= cyclesElapsed && totalYield >= unlockedYield) {
             cyclesLeft = freq - cyclesElapsed;
             lockedYield = totalYield - unlockedYield;
@@ -332,6 +340,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
 
         prevClaimed[msg.sender][_depositNumber] = _details.unlockedYield;
 
+        // This variable update is to verify that previous claimed yield is updated on the mapping yieldClaimed
         if (_details.cyclesElapsed < freq) {
             yieldClaimed[msg.sender][_depositNumber] +=
                 _details.unlockedYield -

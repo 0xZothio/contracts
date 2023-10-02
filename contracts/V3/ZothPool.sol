@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.5;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -11,7 +11,7 @@ import {IZothPool} from "../Interfaces/IZothPool.sol";
 
 // import "hardhat/console.sol";
 // AAVE USDC : 0xe9DcE89B076BA6107Bb64EF30678efec11939234
-// INSPIRED BY : polytrade finance
+// INSPIRED BY : polytrade finance smart contracts
 /**
  * @author Zoth.io
  * @notice This contract is a pool contract that inherits the properties of the ERC721 token standard.
@@ -27,7 +27,7 @@ Changes :
 - Make an interface ✅
 - Add two options for deposit :
     - user based input ✅
-    - default tenure
+    - default tenure ✅
 - Add emergency withdraw based fee implementation ✅
 */
 
@@ -121,13 +121,24 @@ contract ZothPool is ERC721URIStorage, IZothPool {
             "[deposit(uint256 amount)] : Transfer Check : Transfer failed"
         );
 
-        uint256 stableReward = _calculateBaseRewards(msg.sender);
         Lender storage lenderData = lenders[msg.sender];
-        lenderData.amount = lenderData.amount + _amount;
-        lenderData.pendingStableReward =
-            lenderData.pendingStableReward +
-            stableReward;
-        lenderData.lastUpdateDate = block.timestamp;
+        uint256 lockingPeriod = tenure * 1 days;
+        uint256 currentId = lenderData.currentId;
+        unchecked {
+            ++lenderData.currentId;
+        }
+
+        uint256 apr = getBaseApr();
+
+        lenderData.deposits[currentId] = Deposit(
+            _amount,
+            apr,
+            lockingPeriod,
+            block.timestamp,
+            block.timestamp + lockingPeriod,
+            block.timestamp
+        );
+
         usdc.transferFrom(msg.sender, address(this), _amount);
 
         // =========================================

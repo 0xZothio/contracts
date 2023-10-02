@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.5;
+pragma solidity 0.8.20;
 
 interface IZothPool {
     struct Lender {
@@ -27,7 +27,7 @@ interface IZothPool {
 
     /**
      * @dev Set the variables for the pool cycle - Start Date, End Date and Reward Rate
-     * @param _tenure tenure 1 variable
+     * @param _tenure tenure 1 variable (number of days)
      * @param _poolId Pool Identifier number
      * @param _hotPeriod Period till which the yield can be claimed
      * @param _coolDownPeriod Period after which the reward calculation will start
@@ -52,7 +52,7 @@ interface IZothPool {
     /**
      * @dev Creates a deposit to the pool : default tenure
      * @param _amount Amount of USDC that user wants to deposit to the pool
-     * @param _lockingDuration Duration of the deposit which user chooses
+     * @param _lockingDuration Duration of the deposit which user chooses (number of days)
      * conditions :
      * amount > 0
      * allowance >= amount

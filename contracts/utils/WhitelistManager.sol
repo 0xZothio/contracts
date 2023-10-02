@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.5;
+pragma solidity 0.8.20;
 
 import {Roles} from "./Roles.sol";
 
@@ -42,19 +42,53 @@ contract WhitelistManager {
         _;
     }
 
+    /**
+     * @dev To add a single address to whitelist
+     */
     function whitelistAddress(address _address) public onlyAuthorities {
         _whitelisted.add(_address);
     }
 
+    /**
+     * @dev To add multiple addresses to whitelist
+     */
+    function whitelistAddresses(
+        address[] memory _addresses
+    ) public onlyAuthorities {
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            _whitelisted.add(_addresses[i]);
+        }
+    }
+
+    /**
+     * @dev To add an address to verifier role
+     */
     function addVerifier(address _address) public onlyOwners {
         _verifiers.add(_address);
     }
 
+    /**
+     * @dev To check whether the address is whitelisted or not
+     */
     function isWhitelisted(address _address) external view returns (bool) {
         return _whitelisted.has(_address);
     }
 
+    /**
+     * @dev To remove an address from whitelist
+     */
     function removeWhitelisted(address _address) public {
         _whitelisted.remove(_address);
+    }
+
+    /**
+     * @dev To remove multiple addresses from whitelist
+     */
+    function removeWhitelistedAddresses(
+        address[] memory _addresses
+    ) public onlyOwners {
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            _whitelisted.remove(_addresses[i]);
+        }
     }
 }
