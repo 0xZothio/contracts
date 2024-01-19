@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.18;
+pragma solidity ^0.8.16;
 
 /**
  * @author OpenZappelin
@@ -27,7 +27,6 @@ library Roles {
     function remove(Role storage role, address account) internal {
         require(account != address(0));
         require(has(role, account));
-
         role.bearer[account] = false;
     }
 
