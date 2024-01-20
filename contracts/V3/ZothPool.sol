@@ -113,7 +113,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         }
         Lender storage lenderData = lenders[msg.sender];
         uint256 currentId = lenderData.currentId;
-        lenderData.amount = lenderData.amount.add(_amount);
+        
         lenderData.lastUpdateDate = block.timestamp;
         unchecked {
             ++lenderData.currentId;
@@ -165,7 +165,10 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
 
         if (_amount <= 10000 * 10 ** 6) {
             // blue
-           r
+            _setTokenURI(
+                newTokenId,
+                "https://gateway.pinata.cloud/ipfs/QmeRhd2icJLyNbD9yzKoiJUvxtBw4u43JB25jzt73vMv28"
+            );
         } else if (_amount > 10000 * 10 ** 6 && _amount <= 25000 * 10 ** 6) {
             // green
             _setTokenURI(
@@ -239,7 +242,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      */
     function emergencyWithdraw(uint256 id) external {
         Deposit memory depositData = lenders[msg.sender].deposits[id];
-        Lender storage lenderData = lenders[msg.sender];
+    
         require(depositData.amount != 0, "You have nothing with this ID");
         require(
             block.timestamp <
@@ -247,7 +250,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
             "You can not emergency withdraw"
         );
         uint256 depositedAmount = depositData.amount;
-        lenderData.amount = lenderData.amount.sub(depositedAmount);
+        
         
         uint256 withdrawFee = (depositedAmount * _withdrawPenaltyPercent) / 1E2; 
         uint256 refundAmount = depositedAmount - withdrawFee;
