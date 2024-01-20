@@ -5,15 +5,18 @@
     "license": "MIT",
     "dependencies": {
         "@openzeppelin/contracts": "^4.9.2",
+        "dotenv": "^16.3.1",
         "hardhat": "^2.16.1"
     },
     "scripts": {
         "test": "npx hardhat test"
     },
     "devDependencies": {
+        "@chainlink/contracts": "^0.6.1",
+        "@chainlink/env-enc": "^1.0.5",
         "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
         "@nomicfoundation/hardhat-ethers": "^3.0.0",
-        "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+        "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
         "@nomicfoundation/hardhat-toolbox": "^3.0.0",
         "@nomicfoundation/hardhat-verify": "^1.0.0",
         "@typechain/ethers-v6": "^0.4.0",

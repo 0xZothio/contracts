@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.16;
 
-interface IZothPool {
+interface IV3ZothPool {
     struct Lender {
         uint256 amount;
         uint256 pendingStableReward;
@@ -18,6 +18,7 @@ interface IZothPool {
         uint256 startDate;
         uint256 endDate;
         uint256 lastClaimDate;
+        uint256 tokenId;
     }
 
     struct RateInfo {
@@ -36,18 +37,9 @@ interface IZothPool {
         uint256 _tenure,
         uint256 _poolId,
         uint256 _hotPeriod,
-        uint256 _coolDownPeriod
+        uint256 _coolDownPeriod,
+        address[] memory _tokenAddresses
     ) external;
-
-    /**
-     * @dev Creates a deposit to the pool : default tenure
-     * @param _amount Amount of USDC that user wants to deposit to the pool
-     * conditions :
-     * amount > 0
-     * allowance >= amount
-     * transfer should be successfull
-     */
-    function deposit(uint256 _amount) external returns (uint256);
 
     /**
      * @dev Creates a deposit to the pool : default tenure
@@ -60,14 +52,11 @@ interface IZothPool {
      */
     function depositByLockingPeriod(
         uint256 _amount,
-        uint256 _lockingDuration
+        uint256 _lockingDuration,
+        uint256 _tokenId
     ) external returns (uint256);
 
-    /**
-     * @dev To withdraw all the calculated yield across all the rate rounds
-     */
-    function withdraw() external;
-
+ 
     /**
      * @notice Withdraws principal total deposit minus fee that is a percentage of total deposit for a specific deposit
      * @param id Represents the ID of deposit that lender tries to emergency withdraw before locking period

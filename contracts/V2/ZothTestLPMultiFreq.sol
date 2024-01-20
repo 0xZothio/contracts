@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.18;
+pragma solidity ^0.8.16;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -70,11 +70,12 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
 
     constructor(
         address _usdcAddress,
-        address _whitelistManager
+        address _whitelistManager,
+        address _owner
     ) ERC721("ZothInvoiceFactoringPool2", "ZIFP2") {
         usdc = IERC20(_usdcAddress);
-        owner = msg.sender;
-        _owners.add(msg.sender);
+        owner = _owner;
+        _owners.add(_owner);
         whitelistManager = IWhitelistManager(_whitelistManager);
     }
 
