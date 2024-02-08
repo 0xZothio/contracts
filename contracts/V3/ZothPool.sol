@@ -190,15 +190,19 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      * @param _depositId : deposit id of the deposits
      */
 
-    function reInvest(uint _depositId) external {
-        Deposit storage depositData = lenders[msg.sender].deposits[_depositId];
+    function reInvest(address _userAddrress,uint _depositId ) external {
+         require(
+            whitelistManager.isFundManager(msg.sender),
+            "USER_IS_NOT_FUND_MANAGER"
+        );
+        Deposit storage depositData = lenders[_userAddrress].deposits[_depositId];
         uint256 depositEndDate = depositData.endDate;
         uint256 depositedAmount = depositData.amount;
 
         require(depositedAmount != 0, "You have nothing with this ID");
         require(block.timestamp >= depositEndDate, "Tenure is not over yet");
         uint256 stableReward = _calculateRewards(
-            msg.sender,
+            _userAddrress,
             _depositId,
             depositEndDate
         );
