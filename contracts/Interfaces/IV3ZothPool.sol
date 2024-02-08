@@ -4,8 +4,6 @@ pragma solidity ^0.8.16;
 interface IV3ZothPool {
     struct Lender {
         uint256 amount;
-        uint256 pendingStableReward;
-        uint256 lastUpdateDate;
         uint256 startId;
         uint256 currentId;
         mapping(uint256 => Deposit) deposits;
@@ -56,7 +54,14 @@ interface IV3ZothPool {
         uint256 _tokenId
     ) external returns (uint256);
 
- 
+    
+    /**
+    * @dev Creates a deposit to the pool : default tenure
+    * @param _depositId Represents the ID of deposit  
+    */
+
+
+    function reInvest(uint256 _depositId) external ;
     /**
      * @notice Withdraws principal total deposit minus fee that is a percentage of total deposit for a specific deposit
      * @param id Represents the ID of deposit that lender tries to emergency withdraw before locking period

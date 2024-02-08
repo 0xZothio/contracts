@@ -29,7 +29,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      * - lenders : To keep track for lenders
      * - rateRounds : To keep track for rate rounds
      */
-    mapping(address => Lender) public lenders;
+    mapping(address => Lender) public lenders; 
     mapping(uint256 => RateInfo) public rateRounds;
 
     /**
@@ -44,16 +44,38 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     uint256 private _withdrawPenaltyPercent;
     uint256 private _totalWithdrawFee;
 
+    /**
+     * @dev vars for the nft
+     */
+
+    string private blueURI;
+    string private pinkURI;
+    string private silverURI;
+    string private goldURI;
+    string private greenURI;
+
     constructor(
         address _whitelistManager,
-        address _owner
-    ) ERC721("ZothInvoiceFactoringPool2", "ZIFP2") {
+        address _owner,
+        string memory _erc721Name,
+        string memory _erc721Symbol,
+        string memory _blueURI,
+        string memory _pinkURI,
+        string memory _silverURI,
+        string memory _goldURI,
+        string memory _greenURI
+    ) ERC721(_erc721Name, _erc721Symbol) {
         owner = _owner;
         whitelistManager = IWhitelistManager(_whitelistManager);
+        blueURI = _blueURI;
+        pinkURI = _pinkURI;
+        silverURI = _silverURI;
+        goldURI = _goldURI;
+        greenURI = _greenURI;
     }
 
     /**
-     * @dev Refer : IZothPool : setContractVariables (Pool Manager)
+     * @dev Refer : IV3ZothPool : setContractVariables (Pool Manager)
      */
     function setContractVariables(
         uint256 _tenure,
@@ -74,7 +96,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     }
 
     /**
-     * @dev Refer : IZothPool : deposit
+     * @dev Refer : IV3ZothPool : deposit
      * @param _amount : Amount to be deposited
      * @param _tokenId : Token address to be deposited ID (Only Whitelisted)
      * @param _lockingDuration : Locking duration for the deposit (if it Zero then it will take the default tenure)
@@ -109,14 +131,12 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         );
         uint256 lockingPeriod;
         if (_lockingDuration > 0) {
-            lockingPeriod = _lockingDuration * 1 days;
+            lockingPeriod = _lockingDuration;
         } else {
-            lockingPeriod = tenure * 1 days;
+            lockingPeriod = tenure;
         }
         Lender storage lenderData = lenders[msg.sender];
         uint256 currentId = lenderData.currentId;
-
-        lenderData.lastUpdateDate = block.timestamp;
         unchecked {
             ++lenderData.currentId;
         }
@@ -137,7 +157,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     }
 
     /**
-     * @dev Refer : IZothPool : withdraw
+     * @dev Refer : IV3ZothPool : withdraw
      * @param id is the id of deposit
      */
     function withdrawUsingDepositId(uint256 id) external {
@@ -145,13 +165,18 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         uint256 depositedAmount = depositData.amount;
         uint256 depositEndDate = depositData.endDate;
         require(depositedAmount != 0, "You have nothing with this ID");
-        require(block.timestamp >= depositEndDate, "You can not withdraw yet");
+        require(
+            block.timestamp >= depositEndDate + hotPeriod,
+            "You can not withdraw yet"
+        );
+
         uint256 stableReward = _calculateRewards(
             msg.sender,
             id,
             depositEndDate
         );
         uint256 stableAmount = depositedAmount + stableReward;
+
         delete lenders[msg.sender].deposits[id];
         _updateId(msg.sender);
         IERC20(tokenAddresses[depositData.tokenId]).transfer(
@@ -161,7 +186,35 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     }
 
     /**
-     * @dev Refer : IZothPool : emergencyWithdraw
+     * @dev Refer : IV3ZothPool : reInvest
+     * @param _depositId : deposit id of the deposits
+     */
+
+    function reInvest(uint _depositId) external {
+        Deposit storage depositData = lenders[msg.sender].deposits[_depositId];
+        uint256 depositEndDate = depositData.endDate;
+        uint256 depositedAmount = depositData.amount;
+
+        require(depositedAmount != 0, "You have nothing with this ID");
+        require(block.timestamp >= depositEndDate, "Tenure is not over yet");
+        uint256 stableReward = _calculateRewards(
+            msg.sender,
+            _depositId,
+            depositEndDate
+        );
+
+        uint256 stableAmount = depositedAmount + stableReward;
+
+        depositData.amount = stableAmount;
+        depositData.endDate = depositData.endDate.add(
+            depositData.lockingDuration
+        );
+        depositData.startDate = block.timestamp;
+    }
+
+ 
+    /**
+     * @dev Refer : IV3ZothPool : emergencyWithdraw
      * @param id is the id of deposit
      */
     function emergencyWithdraw(uint256 id) external {
@@ -179,6 +232,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         uint256 refundAmount = depositedAmount - withdrawFee;
         delete lenders[msg.sender].deposits[id];
         _totalWithdrawFee = _totalWithdrawFee + depositedAmount - refundAmount;
+
         _updateId(msg.sender);
 
         IERC20(tokenAddresses[depositData.tokenId]).transfer(
@@ -188,7 +242,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     }
 
     /**
-     * @dev Refer : IZothPool : changeBaseRates (Owners)
+     * @dev Refer : IV3ZothPool : changeBaseRates (Owners)
      * @param baseStableApr is the new stable apr
      */
     function changeBaseRates(uint256 baseStableApr) external {
@@ -205,7 +259,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     }
 
     /**
-     * @dev Refer : IZothPool : setWithdrawRate
+     * @dev Refer : IV3ZothPool : setWithdrawRate
      * @param newRate is the new withdraw rate
      */
     function setWithdrawRate(uint256 newRate) external {
@@ -215,14 +269,14 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     }
 
     /**
-     * @dev Refer : IZothPool : getBaseApr
+     * @dev Refer : IV3ZothPool : getBaseApr
      */
     function getBaseApr() public view returns (uint256) {
         return rateRounds[_currentRateRound].stableApr;
     }
 
     /**
-     * @dev Refer : IZothPool : getActiveDeposits
+     * @dev Refer : IV3ZothPool : getActiveDeposits
      * @param lender is the address of lender
      */
     function getActiveDeposits(
@@ -297,8 +351,8 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      */
     function _updateId(address _lender) private {
         Lender storage lenderData = lenders[_lender];
-        uint256 start = lenderData.startId;
-        uint256 end = lenderData.currentId;
+        uint256 start = lenderData.startId; //0
+        uint256 end = lenderData.currentId; // 3
 
         while (start < end && lenderData.deposits[start].amount == 0) {
             ++start;
@@ -341,34 +395,19 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
 
         if (_amount <= 10000 * 10 ** 6) {
             // blue
-            _setTokenURI(
-                newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmeRhd2icJLyNbD9yzKoiJUvxtBw4u43JB25jzt73vMv28"
-            );
+            _setTokenURI(newTokenId, blueURI);
         } else if (_amount > 10000 * 10 ** 6 && _amount <= 25000 * 10 ** 6) {
             // green
-            _setTokenURI(
-                newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmY6SXdLsdQCTeJFB77A1kuEJ2HSZidZBsA3mSGh1ad7yG"
-            );
+            _setTokenURI(newTokenId, greenURI);
         } else if (_amount > 25000 * 10 ** 6 && _amount <= 50000 * 10 ** 6) {
             // pink
-            _setTokenURI(
-                newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmQJxvSshn64T3B6xWqk4LdbGgJWUjKEwkCjmDNaMgJEDF"
-            );
+            _setTokenURI(newTokenId, pinkURI);
         } else if (_amount > 50000 * 10 ** 6 && _amount <= 100000 * 10 ** 6) {
             // silver
-            _setTokenURI(
-                newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmNnfsr8NRfWCTBHnfHMN6ecru7kxgnnP6ByRET4UmAiM6"
-            );
+            _setTokenURI(newTokenId, silverURI);
         } else {
             // gold
-            _setTokenURI(
-                newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmZnMPkcsbQcuMbr8tt8oC7EQinbGEog8RtTLG2gvT5V7Q"
-            );
+            _setTokenURI(newTokenId, goldURI);
         }
 
         return newTokenId;

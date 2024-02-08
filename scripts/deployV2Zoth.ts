@@ -5,12 +5,13 @@ async function sleep(ms: any) {
 }
 
 async function main() {
-  const used_address = "0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747";
-  const _whitelistManager = "0x8Ef57Aa1999aC579FEBE779b5D81DBE73E4633f7";
+  const used_address = "0xEa237441c92CAe6FC17Caaf9a7acB3f953be4bd1";
+  const _whitelistManager = "0xe6d602De78a7a46F072B117A99b7e45640aB5E7C";
   // Deploy the RektLock Contract
+  const [deployer] = await hre.ethers.getSigners();
   const ZothTestLPMultiFreq = await hre.ethers.deployContract(
     "ZothTestLPMultiFreq",
-    [used_address, _whitelistManager]
+    [used_address, _whitelistManager, deployer.address]
   );
   await ZothTestLPMultiFreq.waitForDeployment();
   console.log(
@@ -24,7 +25,7 @@ async function main() {
   // // Verify the RektLock Contract
   await hre.run("verify:verify", {
     address: ZothTestLPMultiFreq.target,
-    constructorArguments: [used_address, _whitelistManager],
+    constructorArguments: [used_address, _whitelistManager, deployer.address],
   });
 }
 

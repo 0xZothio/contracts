@@ -182,35 +182,35 @@ export default function Home() {
     },
   ];
 
-  const contract = useContract({
-    address: usdc_Address,
-    abi: usdc_Abi,
-  });
+  // const contract = useContract({
+  //   address: usdc_Address,
+  //   abi: usdc_Abi,
+  // });
 
-  useContractEvent({
-    address: usdc_Address,
-    abi: usdc_Abi,
-    eventName: "Transfer",
-    listener: (from, to, amount) => {
-      setNewEvent({ from, to, amount });
-    },
-  });
+  // useContractEvent({
+  //   address: usdc_Address,
+  //   abi: usdc_Abi,
+  //   eventName: "Transfer",
+  //   listener: (from, to, amount) => {
+  //     setNewEvent({ from, to, amount });
+  //   },
+  // });
 
-  useEffect(() => {
-    async function getPreviousLogs() {
-      const myAddress = "0x5b8f1310A956ee1521A7bB56160451C786289aa9";
-      const toAddress = "0x5F70Ddd9908B04f952b9cB2A6F8E4D451725ceDC";
+  // useEffect(() => {
+  //   async function getPreviousLogs() {
+  //     const myAddress = "0x5b8f1310A956ee1521A7bB56160451C786289aa9";
+  //     const toAddress = "0x5F70Ddd9908B04f952b9cB2A6F8E4D451725ceDC";
 
-      // Create a filter to get the logs
-      const filter = contract.filters.Transfer(myAddress, toAddress);
+  //     // Create a filter to get the logs
+  //     const filter = contract.filters.Transfer(myAddress, toAddress);
 
-      // Get the logs using the filter
-      const logs = await contract.queryFilter(filter);
-      setPreviousLogs(logs);
-    }
+  //     // Get the logs using the filter
+  //     const logs = await contract.queryFilter(filter);
+  //     setPreviousLogs(logs);
+  //   }
 
-    if (contract) getPreviousLogs();
-  }, [contract]);
+  //   if (contract) getPreviousLogs();
+  // }, [contract]);
   const [variables, setVariables] = useState({
     tenure1: 0,
     tenure2: 0,
@@ -445,14 +445,14 @@ export default function Home() {
           </div>
         ) : null}
 
-        <div>
+        {/* <div>
           <p>New event: {JSON.stringigy(newEvent)}</p>
           <ul>
             {previousLogs.map((log, i) => (
               <li key={i}>{JSON.stringify(log)}</li>
             ))}
           </ul>
-        </div>
+        </div> */}
       </div>
     </>
   );

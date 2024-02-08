@@ -51,6 +51,19 @@ describe("ZothPool", function () {
       otherAccount,
     ] = await ethers.getSigners();
 
+    const blueURI =
+      "https://gateway.pinata.cloud/ipfs/QmeRhd2icJLyNbD9yzKoiJUvxtBw4u43JB25jzt73vMv28";
+    const pinkURI =
+      "https://gateway.pinata.cloud/ipfs/QmQJxvSshn64T3B6xWqk4LdbGgJWUjKEwkCjmDNaMgJEDF";
+    const silverURI =
+      "https://gateway.pinata.cloud/ipfs/QmNnfsr8NRfWCTBHnfHMN6ecru7kxgnnP6ByRET4UmAiM6";
+    const goldURI =
+      "https://gateway.pinata.cloud/ipfs/QmZnMPkcsbQcuMbr8tt8oC7EQinbGEog8RtTLG2gvT5V7Q";
+    const greenURI =
+      "https://gateway.pinata.cloud/ipfs/QmY6SXdLsdQCTeJFB77A1kuEJ2HSZidZBsA3mSGh1ad7yG";
+
+    const poolName = "Zoth Pool #2";
+    const poolSymbol = "ZP2";
     // TOKEN SETUP
     const testUSDCContract = await ethers.getContractFactory("TestUSDC");
     const testUSDC1 = await testUSDCContract.deploy();
@@ -82,7 +95,7 @@ describe("ZothPool", function () {
       testUSDCAddress5,
     ];
 
-    console.log("tUSDC transfered from main account to otherAccount.");
+    console.log("Tokens transfered from main account to otherAccount.");
 
     // WHITELISTER SETUP
     const whitelistManagerContract = await ethers.getContractFactory(
@@ -98,7 +111,14 @@ describe("ZothPool", function () {
     const zothTestLPContract = await ethers.getContractFactory("ZothPool");
     const ZothTestLP = await zothTestLPContract.deploy(
       whitelistManagerAddress,
-      poolmanager
+      poolmanager,
+      poolName,
+      poolSymbol,
+      blueURI,
+      pinkURI,
+      silverURI,
+      goldURI,
+      greenURI
     );
 
     console.log("ZothPool deployed.");
@@ -588,6 +608,73 @@ describe("ZothPool", function () {
       expect(await testUSDC1.balanceOf(zothTestLPAddress)).to.equal(
         ethers.parseUnits("1600", 6)
       );
+    });
+
+    it("[Testing] : Reinvest function Testing ", async () => {
+      const {
+        ZothTestLP,
+        zothTestLPAddress,
+        otherAccount,
+        testUSDC3,
+        whitelistManager,
+        owner,
+        tokenAddresses,
+        verifier,
+        poolmanager,
+        fundmanager,
+      } = await loadFixture(runEveryTime);
+
+      await ZothTestLP.connect(poolmanager).setContractVariables(
+        90,
+        1,
+        30,
+        40,
+        tokenAddresses
+      );
+
+      const spender_amount = ethers.parseUnits("1000000000", 6);
+      await ZothTestLP.connect(owner).changeBaseRates(12);
+
+      await testUSDC3
+        .connect(otherAccount)
+        .approve(zothTestLPAddress, spender_amount);
+
+      await whitelistManager
+        .connect(verifier)
+        .addWhitelist(otherAccount.address);
+      console.log(
+        "Balance Before: ",
+        await testUSDC3.balanceOf(otherAccount.address)
+      );
+      await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
+        ethers.parseUnits("400", 6),
+        3 * 30 * 24 * 60 * 60,
+        2
+      );
+
+      let ONE_MONTH_IN_SECS = 3 * 30 * 24 * 60 * 60;
+      let unlockTime = (await time.latest()) + ONE_MONTH_IN_SECS;
+
+      await time.increaseTo(unlockTime);
+
+      //two months passed and reinvesting
+      
+      let data2 = await ZothTestLP.connect(otherAccount).getReward(0);
+      console.log("Data:Reward ", data2);
+
+      let data = await ZothTestLP.connect(otherAccount).reInvest(0);
+
+
+
+      ONE_MONTH_IN_SECS = 3 * 30 * 24 * 60 * 60;
+      unlockTime = (await time.latest()) + ONE_MONTH_IN_SECS;
+      await time.increaseTo(unlockTime);
+
+      let data4 = await ZothTestLP.connect(otherAccount).getReward(0);
+      console.log("Data3:Reward ", data4);
+
+
+
     });
   });
 });

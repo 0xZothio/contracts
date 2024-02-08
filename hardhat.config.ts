@@ -1,7 +1,8 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 require("dotenv").config();
-const { PRIVATE_KEY, POLYGON_API_KEY } = process.env;
+const { PRIVATE_KEY, POLYGON_API_KEY, PLUME_TESTNET_API, BERA_TESTNET_API } =
+  process.env;
 const config: HardhatUserConfig = {
   defaultNetwork: "localhost",
   networks: {
@@ -17,9 +18,42 @@ const config: HardhatUserConfig = {
       url: "https://rpc-mainnet.maticvigil.com",
       accounts: [PRIVATE_KEY],
     },
+    plume_testnet: {
+      url: "https://plume-testnet.rpc.caldera.xyz/http",
+      accounts: [PRIVATE_KEY],
+    },
+    berachainArtio: {
+      url: "https://artio.rpc.berachain.com/",
+      accounts: [PRIVATE_KEY],
+      gasPrice: 10000000000,
+    },
   },
   etherscan: {
-    apiKey: POLYGON_API_KEY,
+    apiKey: {
+      plume_testnet: PLUME_TESTNET_API,
+      polygonMumbai: POLYGON_API_KEY,
+      berachainArtio: "berachainArtio",
+    },
+    customChains: [
+      {
+        network: "plume_testnet",
+        chainId: 161221135,
+        urls: {
+          apiURL: "https://plume-testnet.explorer.caldera.xyz/api",
+          browserURL: "https://plume-testnet.explorer.caldera.xyz",
+        },
+      },
+      
+      {
+        network: "berachainArtio",
+        chainId: 80085,
+        urls: {
+          apiURL:
+            "https://api.routescan.io/v2/network/testnet/evm/80085/etherscan",
+          browserURL: "https://artio.beratrail.io",
+        },
+      },
+    ],
   },
   solidity: {
     compilers: [
@@ -49,7 +83,7 @@ const config: HardhatUserConfig = {
     sources: "./contracts",
     tests: "./test",
     cache: "./cache",
-    artifacts: "./client/artifacts"
+    artifacts: "./client/artifacts",
   },
 };
 

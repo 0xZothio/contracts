@@ -13,7 +13,6 @@ async function main() {
     "WhitelistManager contract deployed to:",
     WhitelistManager.target
   );
-
   await sleep(30 * 1000);
   // // Verify the WhitelistManager Contract
   await hre.run("verify:verify", {

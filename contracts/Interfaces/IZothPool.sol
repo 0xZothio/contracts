@@ -63,6 +63,10 @@ interface IZothPool {
         uint256 _lockingDuration
     ) external returns (uint256);
 
+
+    /**
+    *
+    */
     /**
      * @dev To withdraw all the calculated yield across all the rate rounds
      */
