@@ -1,0 +1,28 @@
+{
+    "name": "ZOTH-Pool6-NFT-Pink",
+    "description": "This global pool involves investing in premium receivables. They are from reputed assets originators from APAC, Middle East and Latin America.",
+    "animation_url": "https://gateway.pinata.cloud/ipfs/QmXd8zMjQ2H7KkpbXh8YdRYSMtwPnuZKTF1PFvfQTP2vDA",
+    "image": "https://gateway.pinata.cloud/ipfs/QmXd8zMjQ2H7KkpbXh8YdRYSMtwPnuZKTF1PFvfQTP2vDA",
+    "attributes": [
+      {
+        "trait_type": "Pool_id",
+        "value": "6"
+      },
+      {
+        "trait_type": "Pool_Start_Date",
+        "value": "10/02/2024"
+      },
+      {
+        "trait_type": "Avg_Percentage_Yield",
+        "value": "12"
+      },
+      {
+        "trait_type": "Loan_Tenure",
+        "value": "60 days"
+      },
+      {
+        "trait_type": "Cool_Off_Period",
+        "value": "5 days"
+      }
+    ]
+  }
