@@ -1,8 +1,13 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 require("dotenv").config();
-const { PRIVATE_KEY, POLYGON_API_KEY, PLUME_TESTNET_API, BERA_TESTNET_API,ALFAJORES_API_KEY } =
-  process.env;
+const {
+  PRIVATE_KEY,
+  POLYGON_API_KEY,
+  PLUME_TESTNET_API,
+  BERA_TESTNET_API,
+  ALFAJORES_API_KEY,
+} = process.env;
 const config: HardhatUserConfig = {
   defaultNetwork: "localhost",
   networks: {
@@ -17,7 +22,7 @@ const config: HardhatUserConfig = {
     alfajores: {
       url: "https://alfajores-forno.celo-testnet.org",
       accounts: [PRIVATE_KEY],
-      chainId: 44787
+      chainId: 44787,
     },
     matic: {
       url: "https://rpc-mainnet.maticvigil.com",
@@ -32,6 +37,10 @@ const config: HardhatUserConfig = {
       accounts: [PRIVATE_KEY],
       gasPrice: 10000000000,
     },
+    celo: {
+      url: "https://forno.celo.org",
+      accounts: [PRIVATE_KEY],
+    },
   },
   etherscan: {
     apiKey: {
@@ -39,6 +48,7 @@ const config: HardhatUserConfig = {
       polygonMumbai: POLYGON_API_KEY,
       berachainArtio: "berachainArtio",
       alfajores: ALFAJORES_API_KEY,
+      celo: ALFAJORES_API_KEY,
     },
     customChains: [
       {
@@ -49,7 +59,7 @@ const config: HardhatUserConfig = {
           browserURL: "https://plume-testnet.explorer.caldera.xyz",
         },
       },
-      
+
       {
         network: "berachainArtio",
         chainId: 80085,
@@ -63,10 +73,18 @@ const config: HardhatUserConfig = {
         network: "alfajores",
         chainId: 44787,
         urls: {
-            apiURL: "https://api-alfajores.celoscan.io/api",
-            browserURL: "https://alfajores.celoscan.io",
+          apiURL: "https://api-alfajores.celoscan.io/api",
+          browserURL: "https://alfajores.celoscan.io",
         },
-    },
+      },
+      {
+        network: "celo",
+        chainId: 42220,
+        urls: {
+          apiURL: "https://api.celoscan.io/api",
+          browserURL: "https://celoscan.io/",
+        },
+      },
     ],
   },
   solidity: {
