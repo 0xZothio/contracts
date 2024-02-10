@@ -1,7 +1,7 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 require("dotenv").config();
-const { PRIVATE_KEY, POLYGON_API_KEY, PLUME_TESTNET_API, BERA_TESTNET_API } =
+const { PRIVATE_KEY, POLYGON_API_KEY, PLUME_TESTNET_API, BERA_TESTNET_API,ALFAJORES_API_KEY } =
   process.env;
 const config: HardhatUserConfig = {
   defaultNetwork: "localhost",
@@ -13,6 +13,11 @@ const config: HardhatUserConfig = {
     mumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
       accounts: [PRIVATE_KEY],
+    },
+    alfajores: {
+      url: "https://alfajores-forno.celo-testnet.org",
+      accounts: [PRIVATE_KEY],
+      chainId: 44787
     },
     matic: {
       url: "https://rpc-mainnet.maticvigil.com",
@@ -33,6 +38,7 @@ const config: HardhatUserConfig = {
       plume_testnet: PLUME_TESTNET_API,
       polygonMumbai: POLYGON_API_KEY,
       berachainArtio: "berachainArtio",
+      alfajores: ALFAJORES_API_KEY,
     },
     customChains: [
       {
@@ -53,6 +59,14 @@ const config: HardhatUserConfig = {
           browserURL: "https://artio.beratrail.io",
         },
       },
+      {
+        network: "alfajores",
+        chainId: 44787,
+        urls: {
+            apiURL: "https://api-alfajores.celoscan.io/api",
+            browserURL: "https://alfajores.celoscan.io",
+        },
+    },
     ],
   },
   solidity: {

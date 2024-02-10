@@ -191,10 +191,11 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      */
 
     function reInvest(address _userAddrress,uint _depositId ) external {
-         require(
+        require(
             whitelistManager.isFundManager(msg.sender),
             "USER_IS_NOT_FUND_MANAGER"
         );
+        
         Deposit storage depositData = lenders[_userAddrress].deposits[_depositId];
         uint256 depositEndDate = depositData.endDate;
         uint256 depositedAmount = depositData.amount;
