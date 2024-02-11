@@ -185,31 +185,31 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
             // blue
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmeRhd2icJLyNbD9yzKoiJUvxtBw4u43JB25jzt73vMv28"
+                "https://ivory-injured-gerbil-133.mypinata.cloud/ipfs/QmRRBYwvwAfRCBtBBNE3p2r8FjfANfqC7UefHLUUA87ENg"
             );
         } else if (amount > 10000 * 10 ** _decimal && amount <= 25000 * 10 ** _decimal) {
             // green
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmQhC6FSRsvYYj1i822TSsf9oHgH9NKuRbW6bq3STikcZC"
+                "https://ivory-injured-gerbil-133.mypinata.cloud/ipfs/Qmbegm3AsVv74r7mVg7Q5ALu3yNcie6EWFgD8x4TynKPL3"
             );
         } else if (amount > 25000 * 10 ** _decimal && amount <= 50000 * 10 ** _decimal) {
             // pink
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmXd8zMjQ2H7KkpbXh8YdRYSMtwPnuZKTF1PFvfQTP2vDA"
+                "https://ivory-injured-gerbil-133.mypinata.cloud/ipfs/QmambzdQWSPnHjVCtbsQBHJjVF7tyzcVwd2PFAjzeZXboj"
             );
         } else if (amount > 50000 * 10 ** _decimal && amount <= 100000 * 10 ** _decimal) {
             // silver
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmT8JpQRXbpBngynEpCHM7n8HGJPpL6Bt6sKPfwi93x5MF"
+                "https://ivory-injured-gerbil-133.mypinata.cloud/ipfs/QmVickQGNnM4tLn5Fr3hq8SBdEXmC1FXzSLrK4Pu2qZzEX"
             );
         } else {
             // gold
             _setTokenURI(
                 newTokenId,
-                "https://gateway.pinata.cloud/ipfs/QmUwJV8oDYT6QmixTiEr29Z2xpVTGSCa68oQsm5vsud6RQ"
+                "https://ivory-injured-gerbil-133.mypinata.cloud/ipfs/Qmc1j1p7kmMfKFW1DQsAiBTS6cFniU2AvGwjPPVwKo38iQ"
             );
         }
 
@@ -252,7 +252,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         uint256 _timeFraction = ((_userEndTime - _userStartTime) * (10 ** _decimal)) /
             SECS_IN_YEAR;
 
-        uint256 totalYield = (balance * reward * _timeFraction) / (10 ** _decimal * 100);
+        uint256 totalYield = (balance * reward * _timeFraction) / ((10 ** _decimal) * 100);
 
         uint256 unlockedYield = 0;
 
