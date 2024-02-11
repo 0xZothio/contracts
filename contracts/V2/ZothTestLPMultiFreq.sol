@@ -48,6 +48,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
     uint256 public poolId;
     uint256 public hotPeriod;
     uint256 public cooldownPeriod;
+    uint256 private _decimal; 
 
     // Mappings for User Deposits
     mapping(address => mapping(uint256 => uint256)) public userStartTime;
@@ -77,6 +78,7 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         owner = _owner;
         _owners.add(_owner);
         whitelistManager = IWhitelistManager(_whitelistManager);
+        _decimal = usdc.decimals();
     }
 
     /**
@@ -179,25 +181,25 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         uint256 newTokenId = _tokenIds.current();
         _mint(msg.sender, newTokenId);
 
-        if (amount <= 10000 * 10 ** 6) {
+        if (amount <= 10000 * 10 ** _decimal) {
             // blue
             _setTokenURI(
                 newTokenId,
                 "https://gateway.pinata.cloud/ipfs/QmeRhd2icJLyNbD9yzKoiJUvxtBw4u43JB25jzt73vMv28"
             );
-        } else if (amount > 10000 * 10 ** 6 && amount <= 25000 * 10 ** 6) {
+        } else if (amount > 10000 * 10 ** _decimal && amount <= 25000 * 10 ** _decimal) {
             // green
             _setTokenURI(
                 newTokenId,
                 "https://gateway.pinata.cloud/ipfs/QmQhC6FSRsvYYj1i822TSsf9oHgH9NKuRbW6bq3STikcZC"
             );
-        } else if (amount > 25000 * 10 ** 6 && amount <= 50000 * 10 ** 6) {
+        } else if (amount > 25000 * 10 ** _decimal && amount <= 50000 * 10 ** _decimal) {
             // pink
             _setTokenURI(
                 newTokenId,
                 "https://gateway.pinata.cloud/ipfs/QmXd8zMjQ2H7KkpbXh8YdRYSMtwPnuZKTF1PFvfQTP2vDA"
             );
-        } else if (amount > 50000 * 10 ** 6 && amount <= 100000 * 10 ** 6) {
+        } else if (amount > 50000 * 10 ** _decimal && amount <= 100000 * 10 ** _decimal) {
             // silver
             _setTokenURI(
                 newTokenId,
@@ -247,10 +249,10 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
         uint256 timeInterval = (_userEndTime - _userStartTime) / freq;
         uint256 cyclesElapsed = elapsedTime / timeInterval;
 
-        uint256 _timeFraction = ((_userEndTime - _userStartTime) * (10 ** 6)) /
+        uint256 _timeFraction = ((_userEndTime - _userStartTime) * (10 ** _decimal)) /
             SECS_IN_YEAR;
 
-        uint256 totalYield = (balance * reward * _timeFraction) / (10 ** 8);
+        uint256 totalYield = (balance * reward * _timeFraction) / (10 ** _decimal * 100);
 
         uint256 unlockedYield = 0;
 
@@ -408,6 +410,6 @@ contract ZothTestLPMultiFreq is ERC721URIStorage, ReentrancyGuard {
     function _transfer(uint256 _amount, address _receiver) public onlyOwners {
         uint256 contractBalance = usdc.balanceOf(address(this));
         require(contractBalance >= _amount, "Insufficient Balance");
-        require(usdc.transfer(_receiver, _amount * 10 ** 6), "TRANSFER FAILED");
+        require(usdc.transfer(_receiver, _amount * 10 ** _decimal), "TRANSFER FAILED");
     }
 }
