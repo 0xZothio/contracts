@@ -43,7 +43,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     uint256 public _currentRateRound;
     uint256 private _withdrawPenaltyPercent;
     uint256 private _totalWithdrawFee;
-
+    uint256 private _decimal; 
     /**
      * @dev vars for the nft
      */
@@ -323,7 +323,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         require(
             IERC20(tokenAddresses[_tokenId]).transfer(
                 _receiver,
-                _amount * 10 ** 6
+                _amount * _decimal
             ),
             "TRANSFER FAILED"
         );
@@ -398,16 +398,16 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         _mint(msg.sender, newTokenId);
         // =========================================
 
-        if (_amount <= 10000 * 10 ** 6) {
+        if (_amount <= 10000 * _decimal) {
             // blue
             _setTokenURI(newTokenId, blueURI);
-        } else if (_amount > 10000 * 10 ** 6 && _amount <= 25000 * 10 ** 6) {
+        } else if (_amount > 10000 * _decimal && _amount <= 25000 * _decimal) {
             // green
             _setTokenURI(newTokenId, greenURI);
-        } else if (_amount > 25000 * 10 ** 6 && _amount <= 50000 * 10 ** 6) {
+        } else if (_amount > 25000 * _decimal && _amount <= 50000 * _decimal) {
             // pink
             _setTokenURI(newTokenId, pinkURI);
-        } else if (_amount > 50000 * 10 ** 6 && _amount <= 100000 * 10 ** 6) {
+        } else if (_amount > 50000 * _decimal && _amount <= 100000 * _decimal) {
             // silver
             _setTokenURI(newTokenId, silverURI);
         } else {
