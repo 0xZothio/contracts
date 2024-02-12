@@ -5,8 +5,8 @@ async function sleep(ms: any) {
 }
 
 async function main() {
-  const used_address = "0xEa237441c92CAe6FC17Caaf9a7acB3f953be4bd1";
-  const _whitelistManager = "0xe6d602De78a7a46F072B117A99b7e45640aB5E7C";
+  const used_address = "0x765de816845861e75a25fca122bb6898b8b1282a";
+  const _whitelistManager = "0x6063cF446a3033CD75853729F0B20F6dc1789696";
   // Deploy the RektLock Contract
   const [deployer] = await hre.ethers.getSigners();
   const ZothTestLPMultiFreq = await hre.ethers.deployContract(
