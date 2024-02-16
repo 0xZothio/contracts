@@ -3,7 +3,6 @@ pragma solidity ^0.8.16;
 
 interface IV3ZothPool {
     struct Lender {
-        uint256 amount;
         uint256 startId;
         uint256 currentId;
         mapping(uint256 => Deposit) deposits;
@@ -24,20 +23,6 @@ interface IV3ZothPool {
         uint256 startDate;
     }
 
-    /**
-     * @dev Set the variables for the pool cycle - Start Date, End Date and Reward Rate
-     * @param _tenure tenure 1 variable (number of days)
-     * @param _poolId Pool Identifier number
-     * @param _hotPeriod Period till which the yield can be claimed
-     * @param _coolDownPeriod Period after which the reward calculation will start
-     */
-    function setContractVariables(
-        uint256 _tenure,
-        uint256 _poolId,
-        uint256 _hotPeriod,
-        uint256 _coolDownPeriod,
-        address[] memory _tokenAddresses
-    ) external;
 
     /**
      * @dev Creates a deposit to the pool : default tenure

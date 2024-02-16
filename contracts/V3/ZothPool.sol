@@ -29,70 +29,55 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      * - lenders : To keep track for lenders
      * - rateRounds : To keep track for rate rounds
      */
-    mapping(address => Lender) public lenders; 
+    mapping(address => Lender) public lenders;
     mapping(uint256 => RateInfo) public rateRounds;
 
     /**
      * @dev Vars for the pool
      */
-    uint256 public tenure;
-    uint256 public poolId;
     uint256 public hotPeriod;
-    uint256 public cooldownPeriod;
     address[] public tokenAddresses;
     uint256 public _currentRateRound;
-    uint256 private _withdrawPenaltyPercent;
-    uint256 private _totalWithdrawFee;
-    uint256 private _decimal; 
+    uint256 private withdrawPenaltyPercent;
+    uint256 private _decimal;
+    uint256 private  minLockingPeriod ;
+    uint256 private  maxLockingPeriod ;
     /**
      * @dev vars for the nft
      */
 
-    string private blueURI;
-    string private pinkURI;
-    string private silverURI;
-    string private goldURI;
-    string private greenURI;
+    string private baseURI;
+
+    // custom errors
+
+    error Unauthorized(string reason);
+
+    // Custom Events for the pool
+
+    event DepositAmount(address indexed user, uint256 indexed tokenId, uint256 amount, uint256 lockingDuration);
+    event Withdraw(address indexed user, uint256 indexed tokenId, uint256 amount);
+    event EmergencyWithdraw(address indexed user, uint256 indexed tokenId, uint256 amount);
+    event ReInvest(address indexed user, uint256 indexed tokenId, uint256 amount);
 
     constructor(
         address _whitelistManager,
-        address _owner,
+        uint _withdrawPenaltyPercent,
         string memory _erc721Name,
         string memory _erc721Symbol,
-        string memory _blueURI,
-        string memory _pinkURI,
-        string memory _silverURI,
-        string memory _goldURI,
-        string memory _greenURI
-    ) ERC721(_erc721Name, _erc721Symbol) {
-        owner = _owner;
-        whitelistManager = IWhitelistManager(_whitelistManager);
-        blueURI = _blueURI;
-        pinkURI = _pinkURI;
-        silverURI = _silverURI;
-        goldURI = _goldURI;
-        greenURI = _greenURI;
-    }
-
-    /**
-     * @dev Refer : IV3ZothPool : setContractVariables (Pool Manager)
-     */
-    function setContractVariables(
-        uint256 _tenure,
-        uint256 _poolId,
+        string memory _baseURI,
         uint256 _hotPeriod,
-        uint256 _coolDownPeriod,
-        address[] memory _tokenAddresses
-    ) external {
-        require(
-            whitelistManager.isPoolManager(msg.sender),
-            "USER_IS_NOT_POOL_MANAGER"
-        );
-        tenure = _tenure;
-        poolId = _poolId;
+        address[] memory _tokenAddresses,
+        uint256 _minLockingPeriod,
+        uint256 _maxLockingPeriod
+    ) ERC721(_erc721Name, _erc721Symbol) {
+        owner = msg.sender;
+        whitelistManager = IWhitelistManager(_whitelistManager);
+        baseURI = _baseURI;
+        withdrawPenaltyPercent = _withdrawPenaltyPercent;
         hotPeriod = _hotPeriod;
-        cooldownPeriod = _coolDownPeriod;
         tokenAddresses = _tokenAddresses;
+        minLockingPeriod = _minLockingPeriod;
+        maxLockingPeriod = _maxLockingPeriod;
     }
 
     /**
@@ -106,21 +91,24 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         uint256 _lockingDuration,
         uint256 _tokenId
     ) public returns (uint256) {
-        require(
-            whitelistManager.isWhitelisted(msg.sender),
-            "USER_IS_NOT_WHITELISTED"
-        );
+        if (!whitelistManager.isWhitelisted(msg.sender)) {
+            revert Unauthorized(
+                "Only whitelisted users can call this function"
+            );
+        }
         require(
             _amount > 0,
             "[deposit(uint256 amount)] : Amount check : Deposit amount must be greater than zero"
         );
         require(
-            IERC20(tokenAddresses[_tokenId]).allowance(
-                msg.sender,
-                address(this)
-            ) >= _amount,
-            "[deposit(uint256 amount)] : USDC allowance check : Contract not authorized to spend tokens"
+            _lockingDuration >= minLockingPeriod,
+            "Locking period below minimum allowed"
         );
+        require(
+            _lockingDuration <= maxLockingPeriod,
+            "Locking period exceeds maximum allowed"
+        );
+       
         require(
             IERC20(tokenAddresses[_tokenId]).transferFrom(
                 msg.sender,
@@ -129,12 +117,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
             ),
             "[deposit(uint256 amount)] : Transfer Check : Transfer failed"
         );
-        uint256 lockingPeriod;
-        if (_lockingDuration > 0) {
-            lockingPeriod = _lockingDuration;
-        } else {
-            lockingPeriod = tenure;
-        }
+
         Lender storage lenderData = lenders[msg.sender];
         uint256 currentId = lenderData.currentId;
         unchecked {
@@ -143,16 +126,18 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
 
         uint256 apr = getBaseApr();
 
+        uint256 _endDate = block.timestamp + _lockingDuration;
         lenderData.deposits[currentId] = Deposit(
             _amount,
             apr,
-            lockingPeriod,
+            _lockingDuration,
             block.timestamp,
-            block.timestamp + lockingPeriod,
+            _endDate,
             block.timestamp,
             _tokenId
         );
 
+        emit DepositAmount(msg.sender, _tokenId, _amount, _lockingDuration);
         return _mintNFTAfterDeposit(_amount);
     }
 
@@ -164,6 +149,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         Deposit memory depositData = lenders[msg.sender].deposits[id];
         uint256 depositedAmount = depositData.amount;
         uint256 depositEndDate = depositData.endDate;
+        uint256 depositTokenId = depositData.tokenId;
         require(depositedAmount != 0, "You have nothing with this ID");
         require(
             block.timestamp >= depositEndDate + hotPeriod,
@@ -179,10 +165,17 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
 
         delete lenders[msg.sender].deposits[id];
         _updateId(msg.sender);
-        IERC20(tokenAddresses[depositData.tokenId]).transfer(
-            msg.sender,
-            stableAmount
+
+        require(
+            IERC20(tokenAddresses[depositTokenId]).transferFrom(
+                address(this),
+                msg.sender,
+                stableAmount
+            ),
+            "[withdrawUsingDepositId(uint256 amount)] : Transfer Check : Transfer failed"
         );
+
+        emit Withdraw(msg.sender, depositTokenId, stableAmount);
     }
 
     /**
@@ -190,13 +183,14 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      * @param _depositId : deposit id of the deposits
      */
 
-    function reInvest(address _userAddrress,uint _depositId ) external {
-        require(
-            whitelistManager.isFundManager(msg.sender),
-            "USER_IS_NOT_FUND_MANAGER"
-        );
-        
-        Deposit storage depositData = lenders[_userAddrress].deposits[_depositId];
+    function reInvest(address _userAddrress, uint _depositId) external {
+        if (!whitelistManager.isFundManager(msg.sender)) {
+            revert Unauthorized("Only fund manager can call this function");
+        }
+
+        Deposit storage depositData = lenders[_userAddrress].deposits[
+            _depositId
+        ];
         uint256 depositEndDate = depositData.endDate;
         uint256 depositedAmount = depositData.amount;
 
@@ -215,35 +209,49 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
             depositData.lockingDuration
         );
         depositData.startDate = block.timestamp;
+
+        emit ReInvest(_userAddrress, depositData.tokenId, stableAmount);
     }
 
- 
     /**
      * @dev Refer : IV3ZothPool : emergencyWithdraw
      * @param id is the id of deposit
      */
     function emergencyWithdraw(uint256 id) external {
         Deposit memory depositData = lenders[msg.sender].deposits[id];
-
+        uint256 depositTokenId = depositData.tokenId;
         require(depositData.amount != 0, "You have nothing with this ID");
         require(
             block.timestamp <
                 depositData.startDate + depositData.lockingDuration,
             "You can not emergency withdraw"
         );
+        require(withdrawPenaltyPercent > 0, "Withdraw Penalty is not set");
+
         uint256 depositedAmount = depositData.amount;
 
-        uint256 withdrawFee = (depositedAmount * _withdrawPenaltyPercent) / 1E2;
+        uint256 withdrawFee = (depositedAmount * withdrawPenaltyPercent) / 1E2;
         uint256 refundAmount = depositedAmount - withdrawFee;
         delete lenders[msg.sender].deposits[id];
-        _totalWithdrawFee = _totalWithdrawFee + depositedAmount - refundAmount;
 
         _updateId(msg.sender);
 
-        IERC20(tokenAddresses[depositData.tokenId]).transfer(
-            msg.sender,
-            refundAmount
+        require(
+            IERC20(tokenAddresses[depositTokenId]).balanceOf(address(this)) >=
+                refundAmount,
+            "[emergencyWithdraw(uint256 id)] : Insufficient balance : Insufficient balance to emergencyWithdraw"
         );
+
+        require(
+            IERC20(tokenAddresses[depositTokenId]).transferFrom(
+                address(this),
+                msg.sender,
+                refundAmount
+            ),
+            "[emergencyWithdraw(uint256 amount)] : Transfer Check : Transfer failed"
+        );
+
+        emit EmergencyWithdraw(msg.sender, depositTokenId, refundAmount);
     }
 
     /**
@@ -251,11 +259,11 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      * @param baseStableApr is the new stable apr
      */
     function changeBaseRates(uint256 baseStableApr) external {
-        require(
-            whitelistManager.isPoolManager(msg.sender),
-            " USER_IS_NOT_POOL_MANAGER "
-        );
-        require(baseStableApr < 10_001, "Invalid Stable Apr");
+        if (!whitelistManager.isPoolManager(msg.sender)) {
+            revert Unauthorized("Only pool manager can call this function");
+        }
+
+        require(baseStableApr <= 10_000, "Invalid Stable Apr");
         uint256 newStableApr = baseStableApr;
         unchecked {
             ++_currentRateRound;
@@ -267,10 +275,18 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      * @dev Refer : IV3ZothPool : setWithdrawRate
      * @param newRate is the new withdraw rate
      */
+
+    // 1 in this context would represent 0.01%.
+    // 100 would represent 1%.
+    // 1,000 would represent 10%.
+    // 10,000 represents 100%, which is equivalent to 1 in traditional percentage terms.
+
     function setWithdrawRate(uint256 newRate) external {
-        require(whitelistManager.isOwner(msg.sender), " USER_IS_NOT_OWNER ");
-        require(newRate < 10_000, "Rate can not be more than 100%");
-        _withdrawPenaltyPercent = newRate;
+        if (!whitelistManager.isOwner(msg.sender)) {
+            revert Unauthorized("Only owner can call this function");
+        }
+        require(newRate <= 10_000, "Rate can not be more than 100%");
+        withdrawPenaltyPercent = newRate;
     }
 
     /**
@@ -312,14 +328,14 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         address _receiver,
         uint256 _tokenId
     ) public {
+        if (!whitelistManager.isFundManager(msg.sender)) {
+            revert Unauthorized("Only fund manager can call this function");
+        }
         require(
-            whitelistManager.isFundManager(msg.sender),
-            "USER_IS_NOT_FUND_MANAGER"
+            IERC20(tokenAddresses[_tokenId]).balanceOf(address(this)) >=
+                _amount,
+            "Insufficient Balance"
         );
-        uint256 contractBalance = IERC20(tokenAddresses[_tokenId]).balanceOf(
-            address(this)
-        );
-        require(contractBalance >= _amount, "Insufficient Balance");
         require(
             IERC20(tokenAddresses[_tokenId]).transfer(
                 _receiver,
@@ -400,26 +416,41 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
 
         if (_amount <= 10000 * _decimal) {
             // blue
-            _setTokenURI(newTokenId, blueURI);
+            _setTokenURI(
+                newTokenId,
+                string(abi.encodePacked(baseURI, "/blue.json"))
+            );
         } else if (_amount > 10000 * _decimal && _amount <= 25000 * _decimal) {
             // green
-            _setTokenURI(newTokenId, greenURI);
+            _setTokenURI(
+                newTokenId,
+                string(abi.encodePacked(baseURI, "/green.json"))
+            );
         } else if (_amount > 25000 * _decimal && _amount <= 50000 * _decimal) {
             // pink
-            _setTokenURI(newTokenId, pinkURI);
+            _setTokenURI(
+                newTokenId,
+                string(abi.encodePacked(baseURI, "/pink.json"))
+            );
         } else if (_amount > 50000 * _decimal && _amount <= 100000 * _decimal) {
             // silver
-            _setTokenURI(newTokenId, silverURI);
+            _setTokenURI(
+                newTokenId,
+                string(abi.encodePacked(baseURI, "/silver.json"))
+            );
         } else {
             // gold
-            _setTokenURI(newTokenId, goldURI);
+            _setTokenURI(
+                newTokenId,
+                string(abi.encodePacked(baseURI, "/gold.json"))
+            );
         }
 
         return newTokenId;
     }
 
     /**
-     * @dev Calculates both the bonus reward and stable rewards for deposits with locking period
+     * @dev Calculates stable rewards for deposits with locking period
      * @param _lender is the address of lender (Fund Manager)
      * @param _id is the id of deposit
      * @param _endDate is the end date of calculation
