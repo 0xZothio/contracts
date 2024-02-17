@@ -138,6 +138,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         );
 
         emit DepositAmount(msg.sender, _tokenId, _amount, _lockingDuration);
+        _decimal =  IERC20(tokenAddresses[_tokenId]).decimals();
         return _mintNFTAfterDeposit(_amount);
     }
 
@@ -288,6 +289,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         require(newRate <= 10_000, "Rate can not be more than 100%");
         withdrawPenaltyPercent = newRate;
     }
+   
 
     /**
      * @dev Refer : IV3ZothPool : getBaseApr
@@ -339,7 +341,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         require(
             IERC20(tokenAddresses[_tokenId]).transfer(
                 _receiver,
-                _amount * _decimal
+                _amount * IERC20(tokenAddresses[_tokenId]).decimals()
             ),
             "TRANSFER FAILED"
         );
@@ -411,6 +413,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         // NFT Mint Functions
         _tokenIds.increment();
         uint256 newTokenId = _tokenIds.current();
+
         _mint(msg.sender, newTokenId);
         // =========================================
 

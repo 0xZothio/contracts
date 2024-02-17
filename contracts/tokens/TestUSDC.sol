@@ -8,7 +8,7 @@ contract TestUSDC is ERC20, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor() ERC20("TestUSDC", "tUSDC") {
-        _mint(msg.sender, 10000000000);
+        _mint(msg.sender, 10000000000 * (10**uint256(decimals())));
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
     }
@@ -17,7 +17,4 @@ contract TestUSDC is ERC20, AccessControl {
         _mint(to, amount);
     }
 
-    function decimals() public view virtual override returns (uint8) {
-        return 18;
-    }
 }
