@@ -184,7 +184,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      * @param _depositId : deposit id of the deposits
      */
 
-    function reInvest(address _userAddrress, uint _depositId) external {
+    function reInvest(address _userAddrress, uint _depositId,uint _amount) external {
         if (!whitelistManager.isFundManager(msg.sender)) {
             revert Unauthorized("Only fund manager can call this function");
         }
@@ -203,13 +203,33 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
             depositEndDate
         );
 
-        uint256 stableAmount = depositedAmount + stableReward;
-
+       
+        uint256 stableAmount = (depositedAmount + stableReward) ;
+        require(_amount< stableAmount,"amount must be smaller then the stable amount");
+        stableAmount= stableAmount - _amount;
         depositData.amount = stableAmount;
         depositData.endDate = depositData.endDate.add(
             depositData.lockingDuration
         );
         depositData.startDate = block.timestamp;
+
+        require(
+            IERC20(tokenAddresses[_depositId]).balanceOf(address(this)) >=
+                _amount,
+            "[reInvest(address _userAddrress, uint _depositId,uint _amount)] : Insufficient balance : Insufficient balance to emergencyWithdraw"
+        );
+
+
+        require(
+            IERC20(tokenAddresses[_depositId]).transferFrom(
+                address(this),
+                _userAddrress,
+                _amount
+            ),
+            "[reInvest(address _userAddrress, uint _depositId,uint _amount)] : Transfer Check : Transfer failed"
+        );
+
+
 
         emit ReInvest(_userAddrress, depositData.tokenId, stableAmount);
     }

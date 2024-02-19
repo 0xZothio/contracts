@@ -46,7 +46,7 @@ interface IV3ZothPool {
     */
 
 
-    function reInvest(address _userAddrress,uint _depositId) external ;
+    function reInvest(address _userAddrress, uint _depositId,uint _amount) external ;
     /**
      * @notice Withdraws principal total deposit minus fee that is a percentage of total deposit for a specific deposit
      * @param id Represents the ID of deposit that lender tries to emergency withdraw before locking period
