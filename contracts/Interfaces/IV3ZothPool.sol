@@ -37,7 +37,7 @@ interface IV3ZothPool {
         uint256 _amount,
         uint256 _lockingDuration,
         uint256 _tokenId
-    ) external returns (uint256);
+    ) external returns (uint256 nftId,uint256 depositId);
 
     
     /**

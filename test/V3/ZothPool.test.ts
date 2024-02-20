@@ -365,11 +365,12 @@ describe("ZothPool", function () {
         .connect(verifier)
         .addWhitelist(otherAccount.address);
 
-      await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
+      let depositData = await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
         ethers.parseUnits("400", 6),
         getSecondsOfDays(40),
         2
       );
+      console.log(depositData,"Logs");
       // here amount 600
       const unlockTime = (await time.latest()) + getSecondsOfDays(20);
 
