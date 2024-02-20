@@ -131,7 +131,6 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
             _lockingDuration,
             block.timestamp,
             _endDate,
-            block.timestamp,
             _tokenId
         );
 

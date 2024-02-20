@@ -14,7 +14,6 @@ interface IV3ZothPool {
         uint256 lockingDuration;
         uint256 startDate;
         uint256 endDate;
-        uint256 lastClaimDate;
         uint256 tokenId;
     }
 
