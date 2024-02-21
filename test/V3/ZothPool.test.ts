@@ -1,8 +1,8 @@
 import { expect, assert } from "chai";
 import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { ethers } from "hardhat";
-function getSecondsOfDays(day:number){
-  return (day * 24 * 60 * 60);
+function getSecondsOfDays(day: number) {
+  return day * 24 * 60 * 60;
 }
 function formatTimestamp(timestamp: any) {
   const date = new Date(timestamp * 1000);
@@ -76,7 +76,7 @@ describe("ZothPool", function () {
     const testUSDCAddress4 = await testUSDC4.getAddress();
     const testUSDCAddress5 = await testUSDC5.getAddress();
 
-    const amountToTransfer = ethers.parseUnits("1000", 6);
+    const amountToTransfer = ethers.parseUnits("1000", 18);
 
     await testUSDC1.transfer(otherAccount, amountToTransfer);
     await testUSDC2.transfer(otherAccount, amountToTransfer);
@@ -221,7 +221,7 @@ describe("ZothPool", function () {
         poolmanager,
       } = await loadFixture(runEveryTime);
 
-      const spender_amount = ethers.parseUnits("1000000000", 6);
+      const spender_amount = ethers.parseUnits("1000", 18);
       await testUSDC1
         .connect(otherAccount)
         .approve(zothTestLPAddress, spender_amount);
@@ -235,21 +235,21 @@ describe("ZothPool", function () {
         .addWhitelist(otherAccount.address);
 
       await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
-        ethers.parseUnits("400", 6),
+        ethers.parseUnits("400", 18),
         getSecondsOfDays(30),
         0 // 1st token address
       );
       await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
-        ethers.parseUnits("600", 6),
+        ethers.parseUnits("600", 18),
         getSecondsOfDays(50),
         1 // 2st token address
       );
 
       expect(await testUSDC1.balanceOf(otherAccount.address)).to.equal(
-        ethers.parseUnits("600", 6)
+        ethers.parseUnits("600", 18)
       );
       expect(await testUSDC2.balanceOf(otherAccount.address)).to.equal(
-        ethers.parseUnits("400", 6)
+        ethers.parseUnits("400", 18)
       );
     });
 
@@ -314,8 +314,9 @@ describe("ZothPool", function () {
       } = await loadFixture(runEveryTime);
 
       const spender_amount = ethers.parseUnits("1000", 6);
-      console.log(spender_amount)
-      await testUSDC3.connect(otherAccount)
+      console.log(spender_amount);
+      await testUSDC3
+        .connect(otherAccount)
         .approve(zothTestLPAddress, spender_amount);
 
       await whitelistManager
@@ -354,7 +355,7 @@ describe("ZothPool", function () {
         poolmanager,
       } = await loadFixture(runEveryTime);
 
-      const spender_amount = ethers.parseUnits("1000000000", 6);
+      const spender_amount = ethers.parseUnits("1000", 18);
       await testUSDC3
         .connect(otherAccount)
         .approve(zothTestLPAddress, spender_amount);
@@ -365,269 +366,179 @@ describe("ZothPool", function () {
         .connect(verifier)
         .addWhitelist(otherAccount.address);
 
-      let depositData = await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
-        ethers.parseUnits("400", 6),
+      await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
+        ethers.parseUnits("400", 18),
         getSecondsOfDays(40),
         2
       );
-      console.log(depositData,"Logs");
-      // here amount 600
-      const unlockTime = (await time.latest()) + getSecondsOfDays(20);
+      console.log(
+        "After Deposit Balance",
+        await testUSDC3.balanceOf(zothTestLPAddress)
+      );
+
+      // here amount 1600
+      const unlockTime = (await time.latest()) + getSecondsOfDays(30);
 
       await time.increaseTo(unlockTime);
-      
+
       await ZothTestLP.connect(otherAccount).emergencyWithdraw(0);
 
-      console.log(await testUSDC3.balanceOf(otherAccount.address));
-      // expect(await testUSDC3.balanceOf(otherAccount.address)).to.equal(
-      //   ethers.parseUnits("960", 6)
-      // );
+      expect(await testUSDC3.balanceOf(otherAccount.address)).to.equal(
+        ethers.parseUnits("960", 18)
+      );
     });
 
-    //   it("[Withdraw Testing] : Should withdraw by ID but Restriction of Time", async () => {
-    //     const {
-    //       ZothTestLP,
-    //       zothTestLPAddress,
-    //       otherAccount,
-    //       testUSDC3,
-    //       whitelistManager,
-    //       owner,
-    //       tokenAddresses,
-    //       verifier,
-    //       poolmanager,
-    //     } = await loadFixture(runEveryTime);
+    it("[Withdraw Testing] : Should withdraw by ID", async () => {
+      const {
+        ZothTestLP,
+        zothTestLPAddress,
+        otherAccount,
+        testUSDC3,
+        whitelistManager,
+        owner,
+        tokenAddresses,
+        verifier,
+        poolmanager,
+      } = await loadFixture(runEveryTime);
 
-    //     await ZothTestLP.connect(poolmanager).setContractVariables(
-    //       10,
-    //       1,
-    //       30,
-    //       40,
-    //       tokenAddresses
-    //     );
-    //     const spender_amount = ethers.parseUnits("1000000000", 6);
-    //     await ZothTestLP.connect(owner).changeBaseRates(12);
+      const spender_amount = ethers.parseUnits("1000", 18);
+      await ZothTestLP.connect(owner).changeBaseRates(12);
 
-    //     await testUSDC3
-    //       .connect(otherAccount)
-    //       .approve(zothTestLPAddress, spender_amount);
+      await testUSDC3
+        .connect(otherAccount)
+        .approve(zothTestLPAddress, spender_amount);
 
-    //     await whitelistManager
-    //       .connect(verifier)
-    //       .addWhitelist(otherAccount.address);
-    //     console.log(
-    //       "Balance Before: ",
-    //       await testUSDC3.balanceOf(otherAccount.address)
-    //     );
-    //     await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
-    //       ethers.parseUnits("200", 6),
-    //       90,
-    //       2
-    //     );
+      await whitelistManager
+        .connect(verifier)
+        .addWhitelist(otherAccount.address);
+      console.log(
+        "Balance Before: ",
+        await testUSDC3.balanceOf(otherAccount.address)
+      );
+      await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
+        ethers.parseUnits("200", 18),
+        getSecondsOfDays(90),
+        2
+      );
 
-    //     console.log(
-    //       "Balance After: ",
-    //       await testUSDC3.balanceOf(otherAccount.address)
-    //     );
+      console.log(
+        "Balance After: ",
+        await testUSDC3.balanceOf(otherAccount.address)
+      );
 
-    //     const ONE_MONTH_IN_SECS = 4 * 30 * 24 * 60 * 60;
-    //     const unlockTime = (await time.latest()) + ONE_MONTH_IN_SECS;
+      const unlockTime = (await time.latest()) + getSecondsOfDays(100);
 
-    //     await time.increaseTo(unlockTime);
+      await time.increaseTo(unlockTime);
 
-    //     await ZothTestLP.connect(otherAccount).withdrawUsingDepositId(0);
+      await ZothTestLP.connect(otherAccount).withdrawUsingDepositId(0);
 
-    //     console.log(
-    //       "Balance After Withdraw: ",
-    //       await testUSDC3.balanceOf(otherAccount.address)
-    //     );
+      console.log(
+        "Balance After Withdraw: ",
+        await testUSDC3.balanceOf(otherAccount.address)
+      );
 
-    //     // 1000 USDC + Reward : 3287671/1e6 = 3.287USDC + 1000USDC = 1003.287USDC
-    //     expect(await testUSDC3.balanceOf(otherAccount.address)).to.equal(
-    //       "1005917808"
-    //     );
-    //   });
+      console.log(await testUSDC3.balanceOf(zothTestLPAddress));
+      // 1000 USDC + Reward : 3287671/1e6 = 3.287USDC + 1000USDC = 1003.287USDC
+      expect(await testUSDC3.balanceOf(otherAccount.address)).to.equal(
+        "1005917808219178082191"
+      );
+    });
 
-    //   it("[Withdraw All Funds] : Should withdraw all funds", async () => {
-    //     const {
-    //       ZothTestLP,
-    //       zothTestLPAddress,
-    //       otherAccount,
-    //       testUSDC2,
-    //       testUSDC3,
-    //       whitelistManager,
-    //       owner,
-    //       tokenAddresses,
-    //       verifier,
-    //       poolmanager,
-    //     } = await loadFixture(runEveryTime);
+    
 
-    //     await ZothTestLP.connect(poolmanager).setContractVariables(
-    //       10,
-    //       1,
-    //       30,
-    //       40,
-    //       tokenAddresses
-    //     );
-    //     const spender_amount = ethers.parseUnits("1000000000", 6);
-    //     await testUSDC2
-    //       .connect(otherAccount)
-    //       .approve(zothTestLPAddress, spender_amount);
+      it("[Testing Transfer Funds]: Should transfer funds to another account", async () => {
+        const {
+          ZothTestLP,
+          zothTestLPAddress,
+          otherAccount,
+          testUSDC1,
+          whitelistManager,
+          owner,
+          tokenAddresses,
+          verifier,
+          poolmanager,
+          fundmanager,
+        } = await loadFixture(runEveryTime);
 
-    //     await testUSDC3
-    //       .connect(otherAccount)
-    //       .approve(zothTestLPAddress, spender_amount);
+       
+        const spender_amount = ethers.parseUnits("1000", 18);
+        await testUSDC1
+          .connect(otherAccount)
+          .approve(zothTestLPAddress, spender_amount);
 
-    //     await whitelistManager
-    //       .connect(verifier)
-    //       .addWhitelist(otherAccount.address);
-    //     await ZothTestLP.connect(owner).changeBaseRates(10);
-    //     await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
-    //       ethers.parseUnits("400", 6),
-    //       30,
-    //       1
-    //     );
+        await whitelistManager
+          .connect(verifier)
+          .addWhitelist(otherAccount.address);
 
-    //     await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
-    //       ethers.parseUnits("800", 6),
-    //       0,
-    //       2
-    //     );
+        await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
+          ethers.parseUnits("400", 18),
+          getSecondsOfDays(40),
+          0
+        );
 
-    //     const ONE_MONTH_IN_SECS = 30 * 24 * 60 * 60;
-    //     const unlockTime = (await time.latest()) + ONE_MONTH_IN_SECS;
+        await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
+          ethers.parseUnits("400", 18),
+          getSecondsOfDays(50),
+          0
+        );
 
-    //     await time.increaseTo(unlockTime);
+        await ZothTestLP.connect(fundmanager)._transfer(ethers.parseUnits("200", 18), owner.address, 0);
 
-    //     await ZothTestLP.connect(otherAccount).withdrawUsingDepositId(0);
-    //     await ZothTestLP.connect(otherAccount).withdrawUsingDepositId(1);
+        expect(await testUSDC1.balanceOf(zothTestLPAddress)).to.equal(
+          ethers.parseUnits("1600", 18)
+        );
+      });
 
-    //     console.log(
-    //       "Balance After Withdraw: ",
-    //       await testUSDC2.balanceOf(otherAccount.address)
-    //     );
-    //     console.log(
-    //       "Balance After Withdraw: ",
-    //       await testUSDC3.balanceOf(otherAccount.address)
-    //     );
-    //     expect(await testUSDC2.balanceOf(otherAccount.address)).to.equal(
-    //       "1003287671"
-    //     );
+      it("[Testing] : Reinvest function Testing ", async () => {
+        const {
+          ZothTestLP,
+          zothTestLPAddress,
+          otherAccount,
+          testUSDC3,
+          whitelistManager,
+          owner,
+          tokenAddresses,
+          verifier,
+          poolmanager,
+          fundmanager,
+        } = await loadFixture(runEveryTime);
 
-    //     expect(await testUSDC3.balanceOf(otherAccount.address)).to.equal(
-    //       "1002191780"
-    //     );
-    //   });
+        
 
-    //   it("[Testing Transfer Funds]: Should transfer funds to another account", async () => {
-    //     const {
-    //       ZothTestLP,
-    //       zothTestLPAddress,
-    //       otherAccount,
-    //       testUSDC1,
-    //       whitelistManager,
-    //       owner,
-    //       tokenAddresses,
-    //       verifier,
-    //       poolmanager,
-    //       fundmanager,
-    //     } = await loadFixture(runEveryTime);
+        const spender_amount = ethers.parseUnits("1000", 18);
+        await ZothTestLP.connect(owner).changeBaseRates(12);
 
-    //     await ZothTestLP.connect(poolmanager).setContractVariables(
-    //       10,
-    //       1,
-    //       30,
-    //       40,
-    //       tokenAddresses
-    //     );
-    //     const spender_amount = ethers.parseUnits("1000000000", 6);
-    //     await testUSDC1
-    //       .connect(otherAccount)
-    //       .approve(zothTestLPAddress, spender_amount);
+        await testUSDC3
+          .connect(otherAccount)
+          .approve(zothTestLPAddress, spender_amount);
 
-    //     await whitelistManager
-    //       .connect(verifier)
-    //       .addWhitelist(otherAccount.address);
+        await whitelistManager
+          .connect(verifier)
+          .addWhitelist(otherAccount.address);
+        console.log(
+          "Balance Before: ",
+          await testUSDC3.balanceOf(otherAccount.address)
+        );
+        await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
+          ethers.parseUnits("400", 18),
+          getSecondsOfDays(90),
+          2
+        );
 
-    //     await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
-    //       ethers.parseUnits("400", 6),
-    //       30,
-    //       0
-    //     );
+        let unlockTime = (await time.latest()) + getSecondsOfDays(100);
 
-    //     await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
-    //       ethers.parseUnits("400", 6),
-    //       0,
-    //       0
-    //     );
+        await time.increaseTo(unlockTime);
 
-    //     await ZothTestLP.connect(fundmanager)._transfer(200, owner.address, 0);
+        //two months passed and reinvesting
 
-    //     expect(await testUSDC1.balanceOf(zothTestLPAddress)).to.equal(
-    //       ethers.parseUnits("1600", 6)
-    //     );
-    //   });
+      
 
-    //   it("[Testing] : Reinvest function Testing ", async () => {
-    //     const {
-    //       ZothTestLP,
-    //       zothTestLPAddress,
-    //       otherAccount,
-    //       testUSDC3,
-    //       whitelistManager,
-    //       owner,
-    //       tokenAddresses,
-    //       verifier,
-    //       poolmanager,
-    //       fundmanager,
-    //     } = await loadFixture(runEveryTime);
+        await ZothTestLP.connect(fundmanager).reInvest(otherAccount.address,0, ethers.parseUnits("200", 18));
 
-    //     await ZothTestLP.connect(poolmanager).setContractVariables(
-    //       90,
-    //       1,
-    //       30,
-    //       40,
-    //       tokenAddresses
-    //     );
 
-    //     const spender_amount = ethers.parseUnits("1000000000", 6);
-    //     await ZothTestLP.connect(owner).changeBaseRates(12);
 
-    //     await testUSDC3
-    //       .connect(otherAccount)
-    //       .approve(zothTestLPAddress, spender_amount);
+    
 
-    //     await whitelistManager
-    //       .connect(verifier)
-    //       .addWhitelist(otherAccount.address);
-    //     console.log(
-    //       "Balance Before: ",
-    //       await testUSDC3.balanceOf(otherAccount.address)
-    //     );
-    //     await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
-    //       ethers.parseUnits("400", 6),
-    //       3 * 30 * 24 * 60 * 60,
-    //       2
-    //     );
-
-    //     let ONE_MONTH_IN_SECS = 3 * 30 * 24 * 60 * 60;
-    //     let unlockTime = (await time.latest()) + ONE_MONTH_IN_SECS;
-
-    //     await time.increaseTo(unlockTime);
-
-    //     //two months passed and reinvesting
-
-    //     let data2 = await ZothTestLP.connect(otherAccount).getReward(0);
-    //     console.log("Data:Reward ", data2);
-
-    //     let data = await ZothTestLP.connect(otherAccount).reInvest(0);
-
-    //     ONE_MONTH_IN_SECS = 3 * 30 * 24 * 60 * 60;
-    //     unlockTime = (await time.latest()) + ONE_MONTH_IN_SECS;
-    //     await time.increaseTo(unlockTime);
-
-    //     let data4 = await ZothTestLP.connect(otherAccount).getReward(0);
-    //     console.log("Data3:Reward ", data4);
-
-    //   });
+      });
   });
 });

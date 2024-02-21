@@ -37,6 +37,7 @@ const config: HardhatUserConfig = {
       accounts: [PRIVATE_KEY],
       gasPrice: 10000000000,
     },
+    
     celo: {
       url: "https://forno.celo.org",
       accounts: [PRIVATE_KEY],
