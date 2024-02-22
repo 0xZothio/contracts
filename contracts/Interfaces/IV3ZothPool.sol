@@ -45,7 +45,22 @@ interface IV3ZothPool {
     */
 
 
-    function reInvest(address _userAddrress, uint _depositId,uint _amount) external ;
+    function reInvest(address _userAddrress, uint _depositId,uint _amount) external returns(bool);
+
+
+    /** 
+        * @dev Withdraws the principal amount after the locking period ends
+        * @param id Represents the ID of deposit that lender tries to withdraw after locking period
+        * Requirements:
+        * - Should be called after locking period ends
+        * - 'msg.sender' should have deposit with specific id
+        * - Lender should have enough stable token to transfer
+    */
+
+
+    function withdrawUsingDepositId(uint256 id) external returns (bool);
+
+
     /**
      * @notice Withdraws principal total deposit minus fee that is a percentage of total deposit for a specific deposit
      * @param id Represents the ID of deposit that lender tries to emergency withdraw before locking period
@@ -54,7 +69,7 @@ interface IV3ZothPool {
      * - 'msg.sender' should have deposit with specific id
      * - Lender should have enough stable token to transfer
      */
-    function emergencyWithdraw(uint256 id) external;
+    function emergencyWithdraw(uint256 id) external returns(bool);
 
     /**
      * @dev Changes the APR that calculates stable and bonus rewards

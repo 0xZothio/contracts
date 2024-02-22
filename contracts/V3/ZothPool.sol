@@ -21,17 +21,13 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     address public immutable owner;
     Counters.Counter private _tokenIds;
 
-    /**
-     * @dev mapping for pool
-     * - lenders : To keep track for lenders
-     * - rateRounds : To keep track for rate rounds
-     */
+    /*«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-*/
+    /*                       STORAGE                              */
+    /*-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»*/
+
     mapping(address => Lender) public lenders;
     mapping(uint256 => RateInfo) public rateRounds;
 
-    /**
-     * @dev Vars for the pool
-     */
     uint256 private hotPeriod;
     address[] public tokenAddresses;
     uint256 public _currentRateRound;
@@ -39,18 +35,23 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     uint256 private _decimal;
     uint256 private minLockingPeriod;
     uint256 private maxLockingPeriod;
-    /**
-     * @dev vars for the nft
-     */
-
     string private baseURI;
 
-    // custom errors
+    /*«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-*/
+    /*                        CUSTOM ERRORS                       */
+    /*-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»*/
 
     error Unauthorized(string reason);
     error InvalidDuration(string reason);
+    error InvalidTokenId(string reason);
+    error InvalidDepositAmount(string reason);
+    error InvalidWithdrawPenaltyRate(string reason);
+    error InvalidStableApr(string reason);
+    error InvalidSetWithdrawPenaltyRate(string reason);
 
-    // Custom Events for the pool
+    /*«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-*/
+    /*                        CUSTOM EVENTS                       */
+    /*-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»*/
 
     event DepositAmount(
         address indexed user,
@@ -74,6 +75,10 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         uint256 amount
     );
 
+    /*«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-*/
+    /*                         INITIALIZER                        */
+    /*-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»*/
+
     constructor(
         address _whitelistManager,
         uint _withdrawPenaltyPercent,
@@ -95,6 +100,10 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         maxLockingPeriod = _maxLockingPeriod;
     }
 
+    /*«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-*/
+    /*                         EXTERNAL FUNCTIONS                 */
+    /*-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»*/
+
     /**
      * @dev Refer : IV3ZothPool : deposit
      * @param _amount : Amount to be deposited
@@ -111,10 +120,16 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
                 "Only whitelisted users can call this function"
             );
         }
-        require(
-            _amount > 0,
-            "[deposit(uint256 amount)] : Amount check : Deposit amount must be greater than zero"
-        );
+
+        if (_amount <= 0) {
+            revert InvalidDepositAmount(
+                "[deposit(uint256 amount)] : Amount check : Deposit amount must be greater than zero"
+            );
+        }
+
+        if (_tokenId >= tokenAddresses.length) {
+            revert InvalidTokenId("Invalid Token Id");
+        }
 
         if (
             _lockingDuration < minLockingPeriod ||
@@ -159,13 +174,20 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     /**
      * @dev Refer : IV3ZothPool : withdraw
      * @param id is the id of deposit
+     * @notice Withdraw the deposited amount
+     * @return bool : True if the withdrawal is successful
      */
-    function withdrawUsingDepositId(uint256 id) external {
+  
+    function withdrawUsingDepositId(uint256 id) external returns (bool){
         Deposit memory depositData = lenders[msg.sender].deposits[id];
         uint256 depositedAmount = depositData.amount;
         uint256 depositEndDate = depositData.endDate;
         uint256 depositTokenId = depositData.tokenId;
-        require(depositedAmount != 0, "You have nothing with this ID");
+         if (depositedAmount <= 0) {
+            revert InvalidDepositAmount(
+                "You have Nothing With This ID"
+            );
+        }
         require(
             block.timestamp >= depositEndDate + hotPeriod,
             "You can not withdraw yet"
@@ -198,18 +220,24 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         );
 
         emit Withdraw(msg.sender, depositTokenId, stableAmount);
+
+        return true;
     }
 
     /**
      * @dev Refer : IV3ZothPool : reInvest
      * @param _depositId : deposit id of the deposits
+     * @param _amount : amount to be reinvested
+     * @param _userAddrress : address of the user to be reinvested
+     * @return bool : True if the reinvestment is successful
+     * @notice Reinvest in the deposited amount
      */
 
     function reInvest(
         address _userAddrress,
         uint _depositId,
         uint _amount
-    ) external {
+    ) external  returns(bool){
         if (!whitelistManager.isFundManager(msg.sender)) {
             revert Unauthorized("Only fund manager can call this function");
         }
@@ -220,7 +248,12 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         uint256 depositEndDate = depositData.endDate;
         uint256 depositedAmount = depositData.amount;
         uint256 depositTokenId = depositData.tokenId;
-        require(depositedAmount != 0, "You have nothing with this ID");
+
+        if (depositedAmount <= 0) {
+            revert InvalidDepositAmount(
+                "You have Nothing With This ID"
+            );
+        }
         require(block.timestamp >= depositEndDate, "Tenure is not over yet");
         uint256 stableReward = _calculateRewards(
             _userAddrress,
@@ -250,24 +283,40 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         );
 
         emit ReInvest(_userAddrress, depositData.tokenId, stableAmount);
+
+        return true;
     }
 
     /**
      * @dev Refer : IV3ZothPool : emergencyWithdraw
      * @param id is the id of deposit
+     * @notice Withdraw the deposited amount before the end date (emergency withdraw)
+     * @return bool : True if the withdrawal is successful
      */
-    function emergencyWithdraw(uint256 id) external {
+    function emergencyWithdraw(uint256 id) external  returns (bool){
         Deposit memory depositData = lenders[msg.sender].deposits[id];
         uint256 depositTokenId = depositData.tokenId;
-        require(depositData.amount != 0, "You have nothing with this ID");
+         uint256 depositedAmount = depositData.amount;
+        if (depositedAmount <= 0) {
+            revert InvalidDepositAmount(
+                "You have Nothing With This ID"
+            );
+        }
+
         require(
             block.timestamp <
                 depositData.startDate + depositData.lockingDuration,
             "You can not emergency withdraw"
         );
-        require(withdrawPenaltyPercent > 0, "Withdraw Penalty is not set");
 
-        uint256 depositedAmount = depositData.amount;
+        if (withdrawPenaltyPercent == 0) {
+            revert InvalidWithdrawPenaltyRate(
+                "Withdraw Penalty is not set"
+            );
+        }
+        
+
+       
 
         uint256 withdrawFee = (depositedAmount * withdrawPenaltyPercent) / 1E2;
         uint256 refundAmount = depositedAmount - withdrawFee;
@@ -290,6 +339,8 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         );
 
         emit EmergencyWithdraw(msg.sender, depositTokenId, refundAmount);
+
+        return true;
     }
 
     /**
@@ -300,8 +351,9 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         if (!whitelistManager.isPoolManager(msg.sender)) {
             revert Unauthorized("Only pool manager can call this function");
         }
-
-        require(baseStableApr <= 10_000, "Invalid Stable Apr");
+        if(baseStableApr > 10_000) {
+            revert InvalidStableApr("Stable Apr can not be more than 100%");
+        }
         uint256 newStableApr = baseStableApr;
         unchecked {
             ++_currentRateRound;
@@ -323,35 +375,10 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         if (!whitelistManager.isOwner(msg.sender)) {
             revert Unauthorized("Only owner can call this function");
         }
-        require(newRate <= 10_000, "Rate can not be more than 100%");
-        withdrawPenaltyPercent = newRate;
-    }
-
-    /**
-     * @dev Refer : IV3ZothPool : getBaseApr
-     */
-    function getBaseApr() public view returns (uint256) {
-        return rateRounds[_currentRateRound].stableApr;
-    }
-
-    /**
-     * @dev Refer : IV3ZothPool : getActiveDeposits
-     * @param lender is the address of lender
-     */
-    function getActiveDeposits(
-        address lender
-    ) external view returns (uint256[] memory) {
-        Lender storage lenderData = lenders[lender];
-        uint256 actives = _activeCount(lender);
-        uint256 j;
-        uint256[] memory activeDeposits = new uint256[](actives);
-        for (uint256 i = lenderData.startId; i < lenderData.currentId; ) {
-            if (lenderData.deposits[i].amount != 0) activeDeposits[j++] = i;
-            unchecked {
-                ++i;
-            }
+        if(newRate > 10_000) {
+            revert InvalidSetWithdrawPenaltyRate("Withdraw Penalty can not be more than 100%");
         }
-        return activeDeposits;
+        withdrawPenaltyPercent = newRate;
     }
 
     /**
@@ -381,6 +408,41 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
             "[_transfer(uint256 _amount,address _receiver,uint256 _tokenId)] : Transfer Check : Transfer failed"
         );
     }
+
+    /*«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-*/
+    /*                         GET FUNCTIONS                      */
+    /*-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»*/
+
+    /**
+     * @dev Refer : IV3ZothPool : getBaseApr
+     */
+    function getBaseApr() public view returns (uint256) {
+        return rateRounds[_currentRateRound].stableApr;
+    }
+
+    /**
+     * @dev Refer : IV3ZothPool : getActiveDeposits
+     * @param lender is the address of lender
+     */
+    function getActiveDeposits(
+        address lender
+    ) external view returns (uint256[] memory) {
+        Lender storage lenderData = lenders[lender];
+        uint256 actives = _activeCount(lender);
+        uint256 j;
+        uint256[] memory activeDeposits = new uint256[](actives);
+        for (uint256 i = lenderData.startId; i < lenderData.currentId; ) {
+            if (lenderData.deposits[i].amount != 0) activeDeposits[j++] = i;
+            unchecked {
+                ++i;
+            }
+        }
+        return activeDeposits;
+    }
+
+    /*«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-«-*/
+    /*                         PRIVATE HELPERS                    */
+    /*-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»*/
 
     /**
      * @dev Calculates number of active deposits by lender
