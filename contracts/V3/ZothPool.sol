@@ -183,9 +183,18 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         delete lenders[msg.sender].deposits[id];
         _updateId(msg.sender);
 
-        IERC20(tokenAddresses[depositTokenId]).transfer(
-            msg.sender,
+        IERC20(tokenAddresses[depositTokenId]).approve(
+            address(this),
             stableAmount
+        );
+
+        require(
+            IERC20(tokenAddresses[depositTokenId]).transferFrom(
+                address(this),
+                msg.sender,
+                stableAmount
+            ),
+            "[withdrawUsingDepositId(uint256 amount)] : Transfer Check : Transfer failed"
         );
 
         emit Withdraw(msg.sender, depositTokenId, stableAmount);
@@ -229,9 +238,15 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         depositData.endDate = depositData.endDate + depositData.lockingDuration;
         depositData.startDate = block.timestamp;
 
-        IERC20(tokenAddresses[depositTokenId]).transfer(
-            _userAddrress,
-            _amount
+        IERC20(tokenAddresses[depositTokenId]).approve(address(this), _amount);
+
+        require(
+            IERC20(tokenAddresses[depositTokenId]).transferFrom(
+                address(this),
+                _userAddrress,
+                _amount
+            ),
+            "[reInvest(uint256 amount)] : Transfer Check : Transfer failed"
         );
 
         emit ReInvest(_userAddrress, depositData.tokenId, stableAmount);
@@ -260,9 +275,18 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
 
         _updateId(msg.sender);
 
-        IERC20(tokenAddresses[depositTokenId]).transfer(
-            msg.sender,
+        IERC20(tokenAddresses[depositTokenId]).approve(
+            address(this),
             refundAmount
+        );
+
+        require(
+            IERC20(tokenAddresses[depositTokenId]).transferFrom(
+                address(this),
+                msg.sender,
+                refundAmount
+            ),
+            "[emergencyWithdraw(uint256 amount)] : Transfer Check : Transfer failed"
         );
 
         emit EmergencyWithdraw(msg.sender, depositTokenId, refundAmount);
@@ -351,10 +375,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
             "Insufficient Balance"
         );
         require(
-            IERC20(tokenAddresses[_tokenId]).transfer(
-                _receiver,
-                _amount
-            ),
+            IERC20(tokenAddresses[_tokenId]).transfer(_receiver, _amount),
             "TRANSFER FAILED"
         );
     }
