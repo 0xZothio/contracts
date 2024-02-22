@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import 'solidity-docgen';
 require("dotenv").config();
 const {
   PRIVATE_KEY,
@@ -111,6 +112,10 @@ const config: HardhatUserConfig = {
         version: "0.8.16",
       },
     },
+  },
+  docgen: {
+    output: 'docs',
+    pages: () => 'api.md',
   },
   paths: {
     sources: "./contracts",
