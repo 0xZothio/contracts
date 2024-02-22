@@ -48,6 +48,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     // custom errors
 
     error Unauthorized(string reason);
+    error InvalidDuration(string reason);
 
     // Custom Events for the pool
 
@@ -114,14 +115,13 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
             _amount > 0,
             "[deposit(uint256 amount)] : Amount check : Deposit amount must be greater than zero"
         );
-        require(
-            _lockingDuration >= minLockingPeriod,
-            "Locking period below minimum allowed"
-        );
-        require(
-            _lockingDuration <= maxLockingPeriod,
-            "Locking period exceeds maximum allowed"
-        );
+
+        if (
+            _lockingDuration < minLockingPeriod ||
+            _lockingDuration > maxLockingPeriod
+        ) {
+            revert InvalidDuration("Invalid Locking Duration");
+        }
 
         require(
             IERC20(tokenAddresses[_tokenId]).transferFrom(
@@ -369,14 +369,16 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         if (!whitelistManager.isFundManager(msg.sender)) {
             revert Unauthorized("Only fund manager can call this function");
         }
+
+        IERC20(tokenAddresses[_tokenId]).approve(address(this), _amount);
+
         require(
-            IERC20(tokenAddresses[_tokenId]).balanceOf(address(this)) >=
-                _amount,
-            "Insufficient Balance"
-        );
-        require(
-            IERC20(tokenAddresses[_tokenId]).transfer(_receiver, _amount),
-            "TRANSFER FAILED"
+            IERC20(tokenAddresses[_tokenId]).transferFrom(
+                address(this),
+                _receiver,
+                _amount
+            ),
+            "[_transfer(uint256 _amount,address _receiver,uint256 _tokenId)] : Transfer Check : Transfer failed"
         );
     }
 

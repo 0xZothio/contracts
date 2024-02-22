@@ -444,101 +444,102 @@ describe("ZothPool", function () {
       );
     });
 
-    
+    it("[Testing Transfer Funds]: Should transfer funds to another account", async () => {
+      const {
+        ZothTestLP,
+        zothTestLPAddress,
+        otherAccount,
+        testUSDC1,
+        whitelistManager,
+        owner,
+        tokenAddresses,
+        verifier,
+        poolmanager,
+        fundmanager,
+      } = await loadFixture(runEveryTime);
 
-      it("[Testing Transfer Funds]: Should transfer funds to another account", async () => {
-        const {
-          ZothTestLP,
-          zothTestLPAddress,
-          otherAccount,
-          testUSDC1,
-          whitelistManager,
-          owner,
-          tokenAddresses,
-          verifier,
-          poolmanager,
-          fundmanager,
-        } = await loadFixture(runEveryTime);
-
-       
-        const spender_amount = ethers.parseUnits("1000", 18);
-        await testUSDC1
-          .connect(otherAccount)
-          .approve(zothTestLPAddress, spender_amount);
-
-        await whitelistManager
-          .connect(verifier)
-          .addWhitelist(otherAccount.address);
-
-        await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
-          ethers.parseUnits("400", 18),
-          getSecondsOfDays(40),
-          0
-        );
-
-        await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
-          ethers.parseUnits("400", 18),
-          getSecondsOfDays(50),
-          0
-        );
-
-        await ZothTestLP.connect(fundmanager)._transfer(ethers.parseUnits("200", 18), owner.address, 0);
-
-        expect(await testUSDC1.balanceOf(zothTestLPAddress)).to.equal(
-          ethers.parseUnits("1600", 18)
-        );
-      });
-
-      it("[Testing] : Reinvest function Testing ", async () => {
-        const {
-          ZothTestLP,
-          zothTestLPAddress,
-          otherAccount,
-          testUSDC3,
-          whitelistManager,
-          owner,
-          tokenAddresses,
-          verifier,
-          poolmanager,
-          fundmanager,
-        } = await loadFixture(runEveryTime);
+      const spender_amount = ethers.parseUnits("1000", 18);
+      await testUSDC1
+        .connect(otherAccount)
+        .approve(zothTestLPAddress, spender_amount);
 
         
+      await whitelistManager
+        .connect(verifier)
+        .addWhitelist(otherAccount.address);
 
-        const spender_amount = ethers.parseUnits("1000", 18);
-        await ZothTestLP.connect(owner).changeBaseRates(12);
+      await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
+        ethers.parseUnits("400", 18),
+        getSecondsOfDays(40),
+        0
+      );
 
-        await testUSDC3
-          .connect(otherAccount)
-          .approve(zothTestLPAddress, spender_amount);
+      await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
+        ethers.parseUnits("400", 18),
+        getSecondsOfDays(50),
+        0
+      );
 
-        await whitelistManager
-          .connect(verifier)
-          .addWhitelist(otherAccount.address);
-        console.log(
-          "Balance Before: ",
-          await testUSDC3.balanceOf(otherAccount.address)
-        );
-        await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
-          ethers.parseUnits("400", 18),
-          getSecondsOfDays(90),
-          2
-        );
+      await ZothTestLP.connect(fundmanager)._transfer(
+        ethers.parseUnits("200", 18),
+        owner.address,
+        0
+      );
 
-        let unlockTime = (await time.latest()) + getSecondsOfDays(100);
+      expect(await testUSDC1.balanceOf(zothTestLPAddress)).to.equal(
+        ethers.parseUnits("1600", 18)
+      );
+    });
 
-        await time.increaseTo(unlockTime);
+    it("[Testing] : Reinvest function Testing ", async () => {
+      const {
+        ZothTestLP,
+        zothTestLPAddress,
+        otherAccount,
+        testUSDC3,
+        whitelistManager,
+        owner,
+        tokenAddresses,
+        verifier,
+        poolmanager,
+        fundmanager,
+      } = await loadFixture(runEveryTime);
 
-        //two months passed and reinvesting
+      const spender_amount = ethers.parseUnits("1000", 18);
+      await ZothTestLP.connect(owner).changeBaseRates(12);
 
-      
+      await testUSDC3
+        .connect(otherAccount)
+        .approve(zothTestLPAddress, spender_amount);
 
-        await ZothTestLP.connect(fundmanager).reInvest(otherAccount.address,0, ethers.parseUnits("200", 18));
+      await whitelistManager
+        .connect(verifier)
+        .addWhitelist(otherAccount.address);
+      console.log(
+        "Balance Before: ",
+        await testUSDC3.balanceOf(otherAccount.address)
+      );
+      await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
+        ethers.parseUnits("400", 18),
+        getSecondsOfDays(90),
+        2
+      );
+
+      let unlockTime = (await time.latest()) + getSecondsOfDays(100);
+
+      await time.increaseTo(unlockTime);
+
+      //two months passed and reinvesting
+
+      await ZothTestLP.connect(fundmanager).reInvest(
+        otherAccount.address,
+        0,
+        ethers.parseUnits("200", 18)
+      );
+    });
 
 
 
-    
 
-      });
   });
 });
