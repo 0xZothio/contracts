@@ -177,16 +177,14 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      * @notice Withdraw the deposited amount
      * @return bool : True if the withdrawal is successful
      */
-  
-    function withdrawUsingDepositId(uint256 id) external returns (bool){
+
+    function withdrawUsingDepositId(uint256 id) external returns (bool) {
         Deposit memory depositData = lenders[msg.sender].deposits[id];
         uint256 depositedAmount = depositData.amount;
         uint256 depositEndDate = depositData.endDate;
         uint256 depositTokenId = depositData.tokenId;
-         if (depositedAmount <= 0) {
-            revert InvalidDepositAmount(
-                "You have Nothing With This ID"
-            );
+        if (depositedAmount <= 0) {
+            revert InvalidDepositAmount("You have Nothing With This ID");
         }
         require(
             block.timestamp >= depositEndDate + hotPeriod,
@@ -228,35 +226,28 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      * @dev Refer : IV3ZothPool : reInvest
      * @param _depositId : deposit id of the deposits
      * @param _amount : amount to be reinvested
-     * @param _userAddrress : address of the user to be reinvested
      * @return bool : True if the reinvestment is successful
      * @notice Reinvest in the deposited amount
      */
 
-    function reInvest(
-        address _userAddrress,
-        uint _depositId,
-        uint _amount
-    ) external  returns(bool){
-        if (!whitelistManager.isFundManager(msg.sender)) {
-            revert Unauthorized("Only fund manager can call this function");
+    function reInvest(uint _depositId, uint _amount) external returns (bool) {
+        if (!whitelistManager.isWhitelisted(msg.sender)) {
+            revert Unauthorized(
+                "Only whitelisted users can call this function"
+            );
         }
 
-        Deposit storage depositData = lenders[_userAddrress].deposits[
-            _depositId
-        ];
+        Deposit storage depositData = lenders[msg.sender].deposits[_depositId];
         uint256 depositEndDate = depositData.endDate;
         uint256 depositedAmount = depositData.amount;
         uint256 depositTokenId = depositData.tokenId;
 
         if (depositedAmount <= 0) {
-            revert InvalidDepositAmount(
-                "You have Nothing With This ID"
-            );
+            revert InvalidDepositAmount("You have Nothing With This ID");
         }
         require(block.timestamp >= depositEndDate, "Tenure is not over yet");
         uint256 stableReward = _calculateRewards(
-            _userAddrress,
+            msg.sender,
             _depositId,
             depositEndDate
         );
@@ -276,13 +267,13 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         require(
             IERC20(tokenAddresses[depositTokenId]).transferFrom(
                 address(this),
-                _userAddrress,
+                msg.sender,
                 _amount
             ),
             "[reInvest(uint256 amount)] : Transfer Check : Transfer failed"
         );
 
-        emit ReInvest(_userAddrress, depositData.tokenId, stableAmount);
+        emit ReInvest(msg.sender, depositData.tokenId, stableAmount);
 
         return true;
     }
@@ -293,14 +284,12 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
      * @notice Withdraw the deposited amount before the end date (emergency withdraw)
      * @return bool : True if the withdrawal is successful
      */
-    function emergencyWithdraw(uint256 id) external  returns (bool){
+    function emergencyWithdraw(uint256 id) external returns (bool) {
         Deposit memory depositData = lenders[msg.sender].deposits[id];
         uint256 depositTokenId = depositData.tokenId;
-         uint256 depositedAmount = depositData.amount;
+        uint256 depositedAmount = depositData.amount;
         if (depositedAmount <= 0) {
-            revert InvalidDepositAmount(
-                "You have Nothing With This ID"
-            );
+            revert InvalidDepositAmount("You have Nothing With This ID");
         }
 
         require(
@@ -310,13 +299,8 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         );
 
         if (withdrawPenaltyPercent == 0) {
-            revert InvalidWithdrawPenaltyRate(
-                "Withdraw Penalty is not set"
-            );
+            revert InvalidWithdrawPenaltyRate("Withdraw Penalty is not set");
         }
-        
-
-       
 
         uint256 withdrawFee = (depositedAmount * withdrawPenaltyPercent) / 1E2;
         uint256 refundAmount = depositedAmount - withdrawFee;
@@ -351,7 +335,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         if (!whitelistManager.isPoolManager(msg.sender)) {
             revert Unauthorized("Only pool manager can call this function");
         }
-        if(baseStableApr > 10_000) {
+        if (baseStableApr > 10_000) {
             revert InvalidStableApr("Stable Apr can not be more than 100%");
         }
         uint256 newStableApr = baseStableApr;
@@ -375,8 +359,10 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         if (!whitelistManager.isOwner(msg.sender)) {
             revert Unauthorized("Only owner can call this function");
         }
-        if(newRate > 10_000) {
-            revert InvalidSetWithdrawPenaltyRate("Withdraw Penalty can not be more than 100%");
+        if (newRate > 10_000) {
+            revert InvalidSetWithdrawPenaltyRate(
+                "Withdraw Penalty can not be more than 100%"
+            );
         }
         withdrawPenaltyPercent = newRate;
     }

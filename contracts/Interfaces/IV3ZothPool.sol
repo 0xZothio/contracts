@@ -45,7 +45,7 @@ interface IV3ZothPool {
     */
 
 
-    function reInvest(address _userAddrress, uint _depositId,uint _amount) external returns(bool);
+    function reInvest(uint _depositId,uint _amount) external returns(bool);
 
 
     /** 
