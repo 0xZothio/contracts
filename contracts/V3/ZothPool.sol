@@ -203,18 +203,11 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         delete lenders[msg.sender].deposits[id];
         _updateId(msg.sender);
 
-        IERC20(tokenAddresses[depositTokenId]).approve(
-            address(this),
-            stableAmount
-        );
+
 
         require(
-            IERC20(tokenAddresses[depositTokenId]).transferFrom(
-                address(this),
-                msg.sender,
-                stableAmount
-            ),
-            "[withdrawUsingDepositId(uint256 amount)] : Transfer Check : Transfer failed"
+             IERC20(tokenAddresses[depositTokenId]).transfer(msg.sender, stableAmount),
+            "withdraw(uint256 _depositNumber) : TRANSFER FAILED"
         );
 
         emit Withdraw(msg.sender, depositTokenId, stableAmount);
@@ -262,17 +255,11 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         depositData.endDate = depositData.endDate + depositData.lockingDuration;
         depositData.startDate = block.timestamp;
 
-        IERC20(tokenAddresses[depositTokenId]).approve(address(this), _amount);
 
         require(
-            IERC20(tokenAddresses[depositTokenId]).transferFrom(
-                address(this),
-                msg.sender,
-                _amount
-            ),
+             IERC20(tokenAddresses[depositTokenId]).transfer(msg.sender, _amount),
             "[reInvest(uint256 amount)] : Transfer Check : Transfer failed"
         );
-
         emit ReInvest(msg.sender, depositData.tokenId, stableAmount);
 
         return true;
@@ -308,19 +295,12 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
 
         _updateId(msg.sender);
 
-        IERC20(tokenAddresses[depositTokenId]).approve(
-            address(this),
-            refundAmount
-        );
 
         require(
-            IERC20(tokenAddresses[depositTokenId]).transferFrom(
-                address(this),
-                msg.sender,
-                refundAmount
-            ),
+             IERC20(tokenAddresses[depositTokenId]).transfer(msg.sender, refundAmount),
             "[emergencyWithdraw(uint256 amount)] : Transfer Check : Transfer failed"
         );
+       
 
         emit EmergencyWithdraw(msg.sender, depositTokenId, refundAmount);
 

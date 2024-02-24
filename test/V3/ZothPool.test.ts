@@ -283,15 +283,14 @@ describe("ZothPool", function () {
           getSecondsOfDays(20),
           2
         )
-      ).revertedWith("Locking period below minimum allowed");
+      ).revertedWithCustomError(ZothTestLP, "InvalidDuration");
 
       await expect(
         ZothTestLP.connect(otherAccount).depositByLockingPeriod(
           ethers.parseUnits("400", 6),
           getSecondsOfDays(366),
-          2
-        )
-      ).revertedWith("Locking period exceeds maximum allowed");
+          2)
+        ).revertedWithCustomError(ZothTestLP, "InvalidDuration");
     });
 
     it("[Get Function] : Should check Base APR", async () => {
@@ -531,8 +530,7 @@ describe("ZothPool", function () {
 
       //two months passed and reinvesting
 
-      await ZothTestLP.connect(fundmanager).reInvest(
-        otherAccount.address,
+      await ZothTestLP.connect(otherAccount).reInvest(
         0,
         ethers.parseUnits("200", 18)
       );
