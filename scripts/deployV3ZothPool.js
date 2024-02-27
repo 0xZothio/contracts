@@ -1,36 +1,26 @@
 const hre = require("hardhat");
 const whiteListeManagerPlume = "0xc23bcA1E5F1a9b9e155B472ED5bA3EA77DB939c8";
-const whiteListeManagerBerachain="0xbF60897dC64FC4a2675b141D24B962008Fe46926";
+const whiteListeManagerBerachain = "0x0479EcAfF5C672c8528371cB66C07af4E7914dF2";
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
   console.log("Deploying contracts with the account:", deployer.address);
-  const blueURI =
-    "https://gateway.pinata.cloud/ipfs/QmeRhd2icJLyNbD9yzKoiJUvxtBw4u43JB25jzt73vMv28";
-  const pinkURI =
-    "https://gateway.pinata.cloud/ipfs/QmQJxvSshn64T3B6xWqk4LdbGgJWUjKEwkCjmDNaMgJEDF";
-  const silverURI =
-    "https://gateway.pinata.cloud/ipfs/QmNnfsr8NRfWCTBHnfHMN6ecru7kxgnnP6ByRET4UmAiM6";
-  const goldURI =
-    "https://gateway.pinata.cloud/ipfs/QmZnMPkcsbQcuMbr8tt8oC7EQinbGEog8RtTLG2gvT5V7Q";
-  const greenURI =
-    "https://gateway.pinata.cloud/ipfs/QmY6SXdLsdQCTeJFB77A1kuEJ2HSZidZBsA3mSGh1ad7yG";
 
   const poolName = "Zoth Pool #2";
   const poolSymbol = "ZP2";
-
+  const baseUri="https://resources.zoth.io/docs";
   const ZothPool = await hre.ethers.deployContract("ZothPool", [
     whiteListeManagerBerachain,
-    deployer.address,
+    10,
     poolName,
     poolSymbol,
-    blueURI,
-    pinkURI,
-    silverURI,
-    goldURI,
-    greenURI,
+    baseUri,
+    15,
+    ["0x5806E416dA447b267cEA759358cF22Cc41FAE80F"],
+    15,
+    60,
   ]);
 
   await ZothPool.waitForDeployment();
@@ -48,14 +38,14 @@ async function main() {
     address: ZothPool.target,
     constructorArguments: [
       whiteListeManagerBerachain,
-      deployer.address,
+      10,
       poolName,
       poolSymbol,
-      blueURI,
-      pinkURI,
-      silverURI,
-      goldURI,
-      greenURI,
+      baseUri,
+      15,
+      ["0x5806E416dA447b267cEA759358cF22Cc41FAE80F"],
+      15,
+      60,
     ],
   });
 }

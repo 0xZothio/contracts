@@ -1,62 +1,6 @@
-# Solidity API
+# Contract Docs for ZothPool
 
-## IERC20
-
-### totalSupply
-
-```solidity
-function totalSupply() external view returns (uint256)
-```
-
-### balanceOf
-
-```solidity
-function balanceOf(address account) external view returns (uint256)
-```
-
-### decimals
-
-```solidity
-function decimals() external view returns (uint8)
-```
-
-### allowance
-
-```solidity
-function allowance(address owner, address spender) external view returns (uint256)
-```
-
-### transfer
-
-```solidity
-function transfer(address recipient, uint256 amount) external returns (bool)
-```
-
-### approve
-
-```solidity
-function approve(address spender, uint256 amount) external returns (bool)
-```
-
-### transferFrom
-
-```solidity
-function transferFrom(address sender, address recipient, uint256 amount) external returns (bool)
-```
-
-### Transfer
-
-```solidity
-event Transfer(address from, address to, uint256 value)
-```
-
-### Approval
-
-```solidity
-event Approval(address owner, address spender, uint256 value)
-```
-
-## IV3ZothPool
+## IV3ZothPool (Interface V3)
 
 ### Lender
 

@@ -89,6 +89,7 @@ const config: HardhatUserConfig = {
       },
     ],
   },
+  gasReporter: { enabled: true },
   solidity: {
     compilers: [
       {
@@ -121,7 +122,7 @@ const config: HardhatUserConfig = {
     sources: "./contracts",
     tests: "./test",
     cache: "./cache",
-    artifacts: "./client/artifacts",
+    artifacts: "./artifacts",
   },
 };
 
