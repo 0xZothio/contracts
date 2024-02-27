@@ -1,4 +1,4 @@
-# Contract Docs for ZothPool
+# Contract Docs for ZothPool V3
 
 ## IV3ZothPool (Interface V3)
 
@@ -36,7 +36,7 @@ struct RateInfo {
 
 ### depositByLockingPeriod
 
-\_Creates a deposit to the pool with specific amount & locking duration with given token selected ID .
+The depositByLockingPeriod function is designed to allow users to make a deposit by providing an amount, a locking duration, and a token ID.
 
 ```solidity
 function depositByLockingPeriod(uint256 _amount, uint256 _lockingDuration, uint256 _tokenId) external returns (uint256 nftId, uint256 depositId)
@@ -48,11 +48,11 @@ function depositByLockingPeriod(uint256 _amount, uint256 _lockingDuration, uint2
 | ----------------- | ------- | ---------------------------------------------------------------------- |
 | \_amount          | uint256 | Amount of USDC that user wants to deposit to the pool                  |
 | \_lockingDuration | uint256 | Duration of the deposit which user chooses (number of days) conditions |
-| \_tokenId         | uint256 |                                                                        |
+| \_tokenId         | uint256 | id of given selected token                                             |
 
 ### reInvest
 
-_Creates a deposit to the pool : default tenure_
+Allows a user to reinvest a specified amount into a deposit identified by deposit ID.
 
 ```solidity
 function reInvest(address _userAddrress, uint256 _depositId, uint256 _amount) external
@@ -60,19 +60,19 @@ function reInvest(address _userAddrress, uint256 _depositId, uint256 _amount) ex
 
 #### Parameters
 
-| Name           | Type    | Description                  |
-| -------------- | ------- | ---------------------------- |
-| \_userAddrress | address |                              |
-| \_depositId    | uint256 | Represents the ID of deposit |
-| \_amount       | uint256 |                              |
+| Name           | Type    | Description                    |
+| -------------- | ------- | ------------------------------ |
+| \_userAddrress | address | Self Address                   |
+| \_depositId    | uint256 | Represents the ID of deposit   |
+| \_amount       | uint256 | Amount that has to be reinvest |
 
 ### emergencyWithdraw
+
+Withdraws principal total deposit minus fee(Penalty) that is a percentage of total deposit for a specific deposit
 
 ```solidity
 function emergencyWithdraw(uint256 id) external
 ```
-
-Withdraws principal total deposit minus fee that is a percentage of total deposit for a specific deposit
 
 #### Parameters
 
@@ -81,12 +81,13 @@ Withdraws principal total deposit minus fee that is a percentage of total deposi
 | id   | uint256 | Represents the ID of deposit that lender tries to emergency withdraw before locking period Requirements: - Should be called before locking period ends - 'msg.sender' should have deposit with specific id - Lender should have enough stable token to transfer |
 
 ### changeBaseRates
+Changes the APR that calculates stable Amount for the next rate cycle only call by Pool Manager
+
 
 ```solidity
 function changeBaseRates(uint256 baseStableApr) external
 ```
 
-_Changes the APR that calculates stable and bonus rewards_
 
 #### Parameters
 
@@ -95,12 +96,13 @@ _Changes the APR that calculates stable and bonus rewards_
 | baseStableApr | uint256 | is the new apr percentage with 2 decimals |
 
 ### setWithdrawRate
+Changes the withdraw rate for the emergencyWithdraw function only call by Owner
+
 
 ```solidity
 function setWithdrawRate(uint256 newRate) external
 ```
 
-_Changes the withdraw rate for the emergencyWithdraw_
 
 #### Parameters
 
@@ -109,20 +111,20 @@ _Changes the withdraw rate for the emergencyWithdraw_
 | newRate | uint256 | is the new apr percentage with 2 decimals |
 
 ### getBaseApr
+Returns the base apr in the current rate cycle .
 
 ```solidity
 function getBaseApr() external view returns (uint256)
 ```
 
-_Returns the base apr in the current rate cycle_
 
 ### getActiveDeposits
+Returns an id array of the active deposits for a lender
 
 ```solidity
 function getActiveDeposits(address lender) external view returns (uint256[])
 ```
 
-_returns an id array of the active deposits for a lender_
 
 #### Parameters
 
@@ -130,7 +132,7 @@ _returns an id array of the active deposits for a lender_
 | ------ | ------- | -------------------------------- |
 | lender | address | Represents the address of lender |
 
-## IWhitelistManager
+## IWhitelistManager (V3 Interface)
 
 ### isWhitelisted
 
@@ -172,7 +174,8 @@ function isOwner(address _address) external view returns (bool)
 
 _Library for managing addresses assigned to a Role._
 
-### Role
+### Role (V3 Struct)
+
 
 ```solidity
 struct Role {
@@ -210,7 +213,7 @@ _check if an account has this role_
 | ---- | ---- | ----------- |
 | [0]  | bool | bool        |
 
-## WhitelistManager
+## WhitelistManager (V3 Manager Contract)
 
 ### constructor
 
