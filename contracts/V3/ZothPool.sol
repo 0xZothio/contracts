@@ -202,9 +202,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
 
         delete lenders[msg.sender].deposits[id];
         _updateId(msg.sender);
-
-
-
+        
         require(
              IERC20(tokenAddresses[depositTokenId]).transfer(msg.sender, stableAmount),
             "withdraw(uint256 _depositNumber) : TRANSFER FAILED"
@@ -245,22 +243,25 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
             depositEndDate
         );
 
-        uint256 stableAmount = (depositedAmount + stableReward);
+        uint256 stableAmount = (depositedAmount + stableReward);//105 USDC 100 + 5
         require(
             _amount < stableAmount,
             "amount must be smaller then the stable amount"
         );
-        stableAmount = stableAmount - _amount;
-        depositData.amount = stableAmount;
-        depositData.endDate = depositData.endDate + depositData.lockingDuration;
+
+        stableAmount = stableAmount - _amount; // 105 - 50 = 55
+
+        // Updation Params of Deposit
+        depositData.amount = _amount;// ReInvested 50 USDC
+        depositData.endDate = depositData.endDate + depositData.lockingDuration;//For the same locking duration
         depositData.startDate = block.timestamp;
 
-
         require(
-             IERC20(tokenAddresses[depositTokenId]).transfer(msg.sender, _amount),
+             IERC20(tokenAddresses[depositTokenId]).transfer(msg.sender, stableAmount),// Transfering 55 USDC to the user Wallet
             "[reInvest(uint256 amount)] : Transfer Check : Transfer failed"
         );
-        emit ReInvest(msg.sender, depositData.tokenId, stableAmount);
+
+        emit ReInvest(msg.sender, depositTokenId , stableAmount);
 
         return true;
     }
