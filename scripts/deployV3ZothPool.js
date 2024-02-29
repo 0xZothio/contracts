@@ -1,6 +1,7 @@
 const hre = require("hardhat");
 const whiteListeManagerPlume = "0xc23bcA1E5F1a9b9e155B472ED5bA3EA77DB939c8";
 const whiteListeManagerBerachain = "0x0479EcAfF5C672c8528371cB66C07af4E7914dF2";
+const whiteListeManagerMumbai = "0xA0a506286ce61b94BC079F31319780aD5968aba4"
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -12,13 +13,13 @@ async function main() {
   const poolSymbol = "ZP2";
   const baseUri="https://resources.zoth.io/docs";
   const ZothPool = await hre.ethers.deployContract("ZothPool", [
-    whiteListeManagerBerachain,
+    whiteListeManagerMumbai,
     10,
     poolName,
     poolSymbol,
     baseUri,
     15,
-    ["0x5806E416dA447b267cEA759358cF22Cc41FAE80F"],
+    ["0x9999f7Fea5938fD3b1E26A12c3f2fb024e194f97"],
     15,
     60,
   ]);
@@ -37,13 +38,13 @@ async function main() {
   await hre.run("verify:verify", {
     address: ZothPool.target,
     constructorArguments: [
-      whiteListeManagerBerachain,
+      whiteListeManagerMumbai,
       10,
       poolName,
       poolSymbol,
       baseUri,
       15,
-      ["0x5806E416dA447b267cEA759358cF22Cc41FAE80F"],
+      ["0x9999f7Fea5938fD3b1E26A12c3f2fb024e194f97"],
       15,
       60,
     ],
