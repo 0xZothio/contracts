@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 const whiteListeManagerPlume = "0xc23bcA1E5F1a9b9e155B472ED5bA3EA77DB939c8";
 const whiteListeManagerBerachain = "0x0479EcAfF5C672c8528371cB66C07af4E7914dF2";
-const whiteListeManagerMumbai = "0x86a6613cA80Bd3088a46974e24bC0a65Dc37f38B"
+const whiteListeManagerMumbai = "0xCe60F35440d758714402118D03Fd79F30941f5A2"
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -15,9 +15,6 @@ async function main() {
   const poolName = "Zoth Pool 6";
   const poolSymbol = "ZP6";
   const baseUri="https://resources.zoth.io/nft/652e8634c9e1df8d9f6f85d6";
-
-  console.log("Deploying ZothPool Contract...");
-  
   const ZothPool = await hre.ethers.deployContract("ZothPool", [
     whiteListeManagerMumbai,
     0,
@@ -25,12 +22,10 @@ async function main() {
     poolSymbol,
     baseUri,
     getSecondsOfDays(7),
-    ["0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359","0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"],
+    ["0xe9DcE89B076BA6107Bb64EF30678efec11939234"],
     getSecondsOfDays(30),
     getSecondsOfDays(365),
   ]);
-
- 
 
   await ZothPool.waitForDeployment();
 
@@ -52,7 +47,7 @@ async function main() {
       poolSymbol,
       baseUri,
       getSecondsOfDays(7),
-      ["0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359","0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"],
+      ["0xe9DcE89B076BA6107Bb64EF30678efec11939234"],
       getSecondsOfDays(30),
       getSecondsOfDays(365),
     ],

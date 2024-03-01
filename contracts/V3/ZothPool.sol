@@ -480,26 +480,27 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
 
         _mint(msg.sender, newTokenId);
         // =========================================
+       
 
-        if (_amount <= 10000 * _decimal) {
+        if (_amount <= 10000 * (10 ** _decimal)) {
             // blue
             _setTokenURI(
                 newTokenId,
                 string(abi.encodePacked(baseURI, "/blue.json"))
             );
-        } else if (_amount > 10000 * _decimal && _amount <= 25000 * _decimal) {
+        } else if (_amount > 10000 * (10 ** _decimal) && _amount <= 25000 * (10 ** _decimal)) {
             // green
             _setTokenURI(
                 newTokenId,
                 string(abi.encodePacked(baseURI, "/green.json"))
             );
-        } else if (_amount > 25000 * _decimal && _amount <= 50000 * _decimal) {
+        } else if (_amount > 25000 * (10 ** _decimal) && _amount <= 50000 * (10 ** _decimal)) {
             // pink
             _setTokenURI(
                 newTokenId,
                 string(abi.encodePacked(baseURI, "/pink.json"))
             );
-        } else if (_amount > 50000 * _decimal && _amount <= 100000 * _decimal) {
+        } else if (_amount > 50000 * (10 ** _decimal) && _amount <= 100000 * (10 ** _decimal)) {
             // silver
             _setTokenURI(
                 newTokenId,

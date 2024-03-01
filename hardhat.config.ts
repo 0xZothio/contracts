@@ -49,6 +49,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       plume_testnet: PLUME_TESTNET_API,
       polygonMumbai: POLYGON_API_KEY,
+      polygon: POLYGON_API_KEY,
       berachainArtio: "berachainArtio",
       alfajores: ALFAJORES_API_KEY,
       celo: ALFAJORES_API_KEY,
