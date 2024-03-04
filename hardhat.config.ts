@@ -35,7 +35,7 @@ const config: HardhatUserConfig = {
       accounts: [PRIVATE_KEY],
     },
     berachainArtio: {
-      url: "https://artio.rpc.berachain.com/",
+      url: "https://rpc.ankr.com/berachain_testnet",
       accounts: [PRIVATE_KEY],
       gasPrice: 10000000000,
     },

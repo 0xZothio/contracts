@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const whiteListeManagerPlume = "0xc23bcA1E5F1a9b9e155B472ED5bA3EA77DB939c8";
-const whiteListeManagerBerachain = "0x0479EcAfF5C672c8528371cB66C07af4E7914dF2";
+const whiteListeManagerBerachain = "0x05A25D6357c6755Cb71DC6997D155CA9A7e3c971";
 const whiteListeManagerMumbai = "0x86a6613cA80Bd3088a46974e24bC0a65Dc37f38B"
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
