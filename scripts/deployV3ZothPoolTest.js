@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 const whiteListeManagerPlume = "0xc23bcA1E5F1a9b9e155B472ED5bA3EA77DB939c8";
-const whiteListeManagerBerachain = "0x05A25D6357c6755Cb71DC6997D155CA9A7e3c971";
+const whiteListeManagerBerachain = "0x371907DA46F9771189C068864115a4e84a227469";
 const whiteListeManagerMumbai = "0xCe60F35440d758714402118D03Fd79F30941f5A2";
 const deployedBerachainPool="0x8Fc89849cdd463c9d75a9973C9683064FAa887e4";
 async function sleep(ms) {
