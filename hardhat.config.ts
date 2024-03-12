@@ -44,6 +44,10 @@ const config: HardhatUserConfig = {
       accounts: [PRIVATE_KEY],
       gasPrice: 10000000000,
     },
+    mentisAndroenda:{
+      url: "https://andromeda.metis.io/?owner=1088",
+      accounts: [PRIVATE_KEY],
+    },
     celo: {
       url: "https://forno.celo.org",
       accounts: [PRIVATE_KEY],
