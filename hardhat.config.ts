@@ -1,7 +1,7 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-ethers";
-import 'solidity-docgen';
+import "solidity-docgen";
 require("dotenv").config();
 const {
   PRIVATE_KEY,
@@ -39,13 +39,13 @@ const config: HardhatUserConfig = {
       accounts: [PRIVATE_KEY],
       gasPrice: 10000000000,
     },
-    mentisSepolia:{
+    mentisSepolia: {
       url: "https://sepolia.metisdevops.link",
       accounts: [PRIVATE_KEY],
       gasPrice: 10000000000,
     },
-    mentisAndroenda:{
-      url: "https://andromeda.metis.io/?owner=1088",
+    metis: {
+      url: "https://andromeda.metis.io",
       accounts: [PRIVATE_KEY],
     },
     celo: {
@@ -61,6 +61,8 @@ const config: HardhatUserConfig = {
       berachainArtio: "berachainArtio",
       alfajores: ALFAJORES_API_KEY,
       celo: ALFAJORES_API_KEY,
+      metis: "metis",
+      metisSepolia:"metis"
     },
     customChains: [
       {
@@ -71,7 +73,24 @@ const config: HardhatUserConfig = {
           browserURL: "https://plume-testnet.explorer.caldera.xyz",
         },
       },
-
+      {
+        network: "metis",
+        chainId: 1088,
+        urls: {
+          apiURL:
+            "https://api.routescan.io/v2/network/mainnet/evm/1088/etherscan",
+          browserURL: "https://andromeda-explorer.metis.io",
+        },
+      },
+      {
+        network: "metisSepolia",
+        chainId: 59902,
+        urls: {
+          apiURL:
+            "https://api.routescan.io/v2/network/testnet/evm/59902/etherscan",
+          browserURL: "https://sepolia.explorer.metisdevops.link/",
+        },
+      },
       {
         network: "berachainArtio",
         chainId: 80085,
@@ -125,8 +144,8 @@ const config: HardhatUserConfig = {
     },
   },
   docgen: {
-    output: 'docs',
-    pages: () => 'api.md',
+    output: "docs",
+    pages: () => "api.md",
   },
   paths: {
     sources: "./contracts",
