@@ -39,10 +39,9 @@ const config: HardhatUserConfig = {
       accounts: [PRIVATE_KEY],
       gasPrice: 10000000000,
     },
-    mentisSepolia: {
+    metisSepolia: {
       url: "https://sepolia.metisdevops.link",
-      accounts: [PRIVATE_KEY],
-      gasPrice: 10000000000,
+      accounts: [PRIVATE_KEY]
     },
     metis: {
       url: "https://andromeda.metis.io",
@@ -61,8 +60,8 @@ const config: HardhatUserConfig = {
       berachainArtio: "berachainArtio",
       alfajores: ALFAJORES_API_KEY,
       celo: ALFAJORES_API_KEY,
-      metis: "metis",
-      metisSepolia:"metis"
+      metis: "apiKey is not required, just set a placeholder",
+      metisSepolia:"apiKey is not required, just set a placeholder"
     },
     customChains: [
       {
@@ -133,6 +132,7 @@ const config: HardhatUserConfig = {
         enabled: true,
         runs: 200,
       },
+      evmVersion: "berlin"
     },
     overrides: {
       "contracts/V3/ZothPool.sol": {
