@@ -26,7 +26,6 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     /*-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»*/
 
     mapping(address => Lender) public lenders;
-    mapping(uint256 => RateInfo) public rateRounds;
 
     uint256 private hotPeriod;
     address[] public tokenAddresses;
@@ -113,7 +112,8 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     function depositByLockingPeriod(
         uint256 _amount,
         uint256 _lockingDuration,
-        uint256 _tokenId
+        uint256 _tokenId,
+        uint256 _apr
     ) public returns (uint256 nftId, uint256 depositId) {
         if (!whitelistManager.isWhitelisted(msg.sender)) {
             revert Unauthorized(
@@ -125,6 +125,9 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
             revert InvalidDepositAmount(
                 "[deposit(uint256 amount)] : Amount check : Deposit amount must be greater than zero"
             );
+        }
+        if (_apr > 1_200  || _apr<= 0) { // 10_000 = 100% 1_200 = 12%s
+            revert InvalidStableApr("Stable Apr can not be more than 12% and not equal to zero");
         }
 
         if (_tokenId >= tokenAddresses.length) {
@@ -152,13 +155,10 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         unchecked {
             ++lenderData.currentId;
         }
-
-        uint256 apr = getBaseApr();
-
         uint256 _endDate = block.timestamp + _lockingDuration;
         lenderData.deposits[currentId] = Deposit(
             _amount,
-            apr,
+            _apr,
             _lockingDuration,
             block.timestamp,
             _endDate,
@@ -308,24 +308,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         return true;
     }
 
-    /**
-     * @dev Refer : IV3ZothPool : changeBaseRates (Owners)
-     * @param baseStableApr is the new stable apr
-     */
-    function changeBaseRates(uint256 baseStableApr) external {
-        if (!whitelistManager.isPoolManager(msg.sender)) {
-            revert Unauthorized("Only pool manager can call this function");
-        }
-        if (baseStableApr > 10_000) {
-            revert InvalidStableApr("Stable Apr can not be more than 100%");
-        }
-        uint256 newStableApr = baseStableApr;
-        unchecked {
-            ++_currentRateRound;
-        }
-        rateRounds[_currentRateRound] = RateInfo(newStableApr, block.timestamp);
-    }
-
+ 
     /**
      * @dev Refer : IV3ZothPool : setWithdrawRate
      * @param newRate is the new withdraw rate
@@ -380,12 +363,6 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
     /*                         GET FUNCTIONS                      */
     /*-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»-»*/
 
-    /**
-     * @dev Refer : IV3ZothPool : getBaseApr
-     */
-    function getBaseApr() public view returns (uint256) {
-        return rateRounds[_currentRateRound].stableApr;
-    }
 
     /**
      * @dev Refer : IV3ZothPool : getActiveDeposits

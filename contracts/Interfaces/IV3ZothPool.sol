@@ -35,7 +35,8 @@ interface IV3ZothPool {
     function depositByLockingPeriod(
         uint256 _amount,
         uint256 _lockingDuration,
-        uint256 _tokenId
+        uint256 _tokenId,
+        uint256 _apr
     ) external returns (uint256 nftId,uint256 depositId);
 
     
@@ -71,23 +72,14 @@ interface IV3ZothPool {
      */
     function emergencyWithdraw(uint256 id) external returns(bool);
 
-    /**
-     * @dev Changes the APR that calculates stable and bonus rewards
-     * @param baseStableApr is the new apr percentage with 2 decimals
-     */
-    function changeBaseRates(uint256 baseStableApr) external;
-
+ 
     /**
      * @dev Changes the withdraw rate for the emergencyWithdraw
      * @param newRate is the new apr percentage with 2 decimals
      */
     function setWithdrawRate(uint256 newRate) external;
 
-    /**
-     * @dev Returns the base apr in the current rate cycle
-     */
-    function getBaseApr() external view returns (uint256);
-
+ 
     /**
      * @dev returns an id array of the active deposits for a lender
      * @param lender Represents the address of lender
