@@ -126,7 +126,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
                 "[deposit(uint256 amount)] : Amount check : Deposit amount must be greater than zero"
             );
         }
-        if (_apr > 1_200  || _apr<= 0) { // 10_000 = 100% 1_200 = 12%s
+        if (_apr > 12  || _apr<= 0) {
             revert InvalidStableApr("Stable Apr can not be more than 12% and not equal to zero");
         }
 
@@ -135,8 +135,8 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         }
 
         if (
-            _lockingDuration <= minLockingPeriod ||
-            _lockingDuration >= maxLockingPeriod
+            _lockingDuration < minLockingPeriod ||
+            _lockingDuration > maxLockingPeriod
         ) {
             revert InvalidDuration("Invalid Locking Duration");
         }

@@ -190,7 +190,7 @@ describe("ZothPool", function () {
       );
 
       await expect(
-        ZothTestLP.connect(otherAccount).depositByLockingPeriod(200, 0, 0)
+        ZothTestLP.connect(otherAccount).depositByLockingPeriod(200, 0, 0,10)
       ).revertedWithCustomError(ZothTestLP, "Unauthorized");
     });
 
@@ -237,12 +237,14 @@ describe("ZothPool", function () {
       await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
         ethers.parseUnits("400", 18),
         getSecondsOfDays(30),
-        0 // 1st token address
+        0, // 1st token address,
+        10
       );
       await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
         ethers.parseUnits("600", 18),
         getSecondsOfDays(50),
-        1 // 2st token address
+        1, // 2st token address
+        10
       );
 
       expect(await testUSDC1.balanceOf(otherAccount.address)).to.equal(
@@ -281,7 +283,8 @@ describe("ZothPool", function () {
         ZothTestLP.connect(otherAccount).depositByLockingPeriod(
           ethers.parseUnits("400", 6),
           getSecondsOfDays(20),
-          2
+          2,
+          10
         )
       ).revertedWithCustomError(ZothTestLP, "InvalidDuration");
 
@@ -289,14 +292,10 @@ describe("ZothPool", function () {
         ZothTestLP.connect(otherAccount).depositByLockingPeriod(
           ethers.parseUnits("400", 6),
           getSecondsOfDays(366),
-          2)
-        ).revertedWithCustomError(ZothTestLP, "InvalidDuration");
-    });
-
-    it("[Get Function] : Should check Base APR", async () => {
-      const { ZothTestLP, owner } = await loadFixture(runEveryTime);
-      await ZothTestLP.connect(owner).changeBaseRates(10);
-      expect(await ZothTestLP.getBaseApr()).to.equal(10);
+          2,
+          10
+        )
+      ).revertedWithCustomError(ZothTestLP, "InvalidDuration");
     });
 
     it("[Active Deposits] : Should check Active Deposits", async () => {
@@ -325,12 +324,14 @@ describe("ZothPool", function () {
       await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
         ethers.parseUnits("400", 6),
         getSecondsOfDays(40),
-        2
+        2,
+        10
       );
       await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
         ethers.parseUnits("400", 6),
         getSecondsOfDays(50),
-        2
+        2,
+        10
       );
       // it will return an array with ids of deposits [0,1]
       expect(
@@ -368,7 +369,8 @@ describe("ZothPool", function () {
       await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
         ethers.parseUnits("400", 18),
         getSecondsOfDays(40),
-        2
+        2,
+        10
       );
       console.log(
         "After Deposit Balance",
@@ -401,7 +403,6 @@ describe("ZothPool", function () {
       } = await loadFixture(runEveryTime);
 
       const spender_amount = ethers.parseUnits("1000", 18);
-      await ZothTestLP.connect(owner).changeBaseRates(12);
 
       await testUSDC3
         .connect(otherAccount)
@@ -417,7 +418,8 @@ describe("ZothPool", function () {
       await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
         ethers.parseUnits("200", 18),
         getSecondsOfDays(90),
-        2
+        2,
+        10
       );
 
       console.log(
@@ -439,7 +441,7 @@ describe("ZothPool", function () {
       console.log(await testUSDC3.balanceOf(zothTestLPAddress));
       // 1000 USDC + Reward : 3287671/1e6 = 3.287USDC + 1000USDC = 1003.287USDC
       expect(await testUSDC3.balanceOf(otherAccount.address)).to.equal(
-        "1005917808219178082191"
+        "1004931506849315068493"
       );
     });
 
@@ -462,7 +464,6 @@ describe("ZothPool", function () {
         .connect(otherAccount)
         .approve(zothTestLPAddress, spender_amount);
 
-        
       await whitelistManager
         .connect(verifier)
         .addWhitelist(otherAccount.address);
@@ -470,13 +471,15 @@ describe("ZothPool", function () {
       await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
         ethers.parseUnits("400", 18),
         getSecondsOfDays(40),
-        0
+        0,
+        10
       );
 
       await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
         ethers.parseUnits("400", 18),
         getSecondsOfDays(50),
-        0
+        0,
+        10
       );
 
       await ZothTestLP.connect(fundmanager)._transfer(
@@ -497,15 +500,13 @@ describe("ZothPool", function () {
         otherAccount,
         testUSDC3,
         whitelistManager,
-        owner,
-        tokenAddresses,
+
         verifier,
-        poolmanager,
-        fundmanager,
+       
       } = await loadFixture(runEveryTime);
 
       const spender_amount = ethers.parseUnits("1000", 18);
-      await ZothTestLP.connect(owner).changeBaseRates(12);
+ 
 
       await testUSDC3
         .connect(otherAccount)
@@ -521,7 +522,8 @@ describe("ZothPool", function () {
       await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
         ethers.parseUnits("400", 18),
         getSecondsOfDays(90),
-        2
+        2,
+        10
       );
 
       let unlockTime = (await time.latest()) + getSecondsOfDays(100);
@@ -536,8 +538,39 @@ describe("ZothPool", function () {
       );
     });
 
+    it("[Deposit] : Check APR at Deposit Time", async () => {
+      const {
+        ZothTestLP,
+        zothTestLPAddress,
+        otherAccount,
+        testUSDC3,
+        whitelistManager,
 
+        verifier,
+       
+      } = await loadFixture(runEveryTime);
 
+      const spender_amount = ethers.parseUnits("1000", 18);
+ 
 
+      await testUSDC3
+        .connect(otherAccount)
+        .approve(zothTestLPAddress, spender_amount);
+
+      await whitelistManager
+        .connect(verifier)
+        .addWhitelist(otherAccount.address);
+      console.log(
+        "Balance Before: ",
+        await testUSDC3.balanceOf(otherAccount.address)
+      );
+
+      await expect(ZothTestLP.connect(otherAccount).depositByLockingPeriod(
+        ethers.parseUnits("400", 18),
+        getSecondsOfDays(90),
+        2,
+        15
+      )).revertedWithCustomError(ZothTestLP, "InvalidStableApr")
+    });
   });
 });
