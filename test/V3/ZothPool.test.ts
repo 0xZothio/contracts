@@ -242,7 +242,7 @@ describe("ZothPool", function () {
       );
       await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
         ethers.parseUnits("600", 18),
-        getSecondsOfDays(50),
+        getSecondsOfDays(365),
         1, // 2st token address
         10
       );
@@ -571,6 +571,58 @@ describe("ZothPool", function () {
         2,
         15
       )).revertedWithCustomError(ZothTestLP, "InvalidStableApr")
+    });
+
+    it("[Deposit] : Deposit with CorrecT APR", async () => {
+      const {
+        ZothTestLP,
+        zothTestLPAddress,
+        otherAccount,
+        testUSDC3,
+        whitelistManager,
+
+        verifier,
+       
+      } = await loadFixture(runEveryTime);
+
+      const spender_amount = ethers.parseUnits("1000", 18);
+ 
+
+      await testUSDC3
+        .connect(otherAccount)
+        .approve(zothTestLPAddress, spender_amount);
+
+      await whitelistManager
+        .connect(verifier)
+        .addWhitelist(otherAccount.address);
+
+
+      console.log(
+        "Balance Before: ",
+        await testUSDC3.balanceOf(otherAccount.address)
+      );
+
+      await ZothTestLP.connect(otherAccount).depositByLockingPeriod(
+        ethers.parseUnits("400", 18),
+        getSecondsOfDays(60),
+        2,
+        8
+      );
+
+
+      let unlockTime = (await time.latest()) + getSecondsOfDays(100);
+      await time.increaseTo(unlockTime);
+
+
+      await ZothTestLP.connect(otherAccount).withdrawUsingDepositId(0);
+
+      console.log(
+        "Balance After Withdraw: ",
+        await testUSDC3.balanceOf(otherAccount.address)
+      );
+
+
+
     });
   });
 });

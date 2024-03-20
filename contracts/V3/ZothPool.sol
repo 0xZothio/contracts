@@ -135,7 +135,7 @@ contract ZothPool is ERC721URIStorage, IV3ZothPool {
         }
 
         if (
-            _lockingDuration < minLockingPeriod ||
+            _lockingDuration < minLockingPeriod || //min=30 days max = 365 days 
             _lockingDuration > maxLockingPeriod
         ) {
             revert InvalidDuration("Invalid Locking Duration");
