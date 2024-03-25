@@ -10,15 +10,14 @@ async function main() {
   console.log("Deploying Quest Contract...");
 
   const Quest = await hre.ethers.deployContract("Quest", [
-    [
-      "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
-      "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-    ],
+    ["0x6581e59A1C8dA66eD0D313a0d4029DcE2F746Cc5"],
   ]);
   await Quest.waitForDeployment();
 
   console.log(
-    "ZothPool Deployed Successfully on Mentioned Network",
+    `Quest Deployed Successfully on Mentioned Network: ${hre.network.name
+      .toString()
+      .toUpperCase()} `,
     Quest.target
   );
 
@@ -28,12 +27,7 @@ async function main() {
   // Verify the Quest Contract
   await hre.run("verify:verify", {
     address: Quest.target,
-    constructorArguments: [
-      [
-        "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
-        "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      ],
-    ],
+    constructorArguments: [["0x6581e59A1C8dA66eD0D313a0d4029DcE2F746Cc5"]],
   });
 }
 

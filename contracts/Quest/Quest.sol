@@ -36,7 +36,12 @@ contract Quest is IQuest {
     error InvalidDepositAmount(string reason);
     error InvalidWithdrawPenaltyRate(string reason);
     error InvalidStableApr(string reason);
-  
+    
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
 
     function depositAmount(
         uint256 _amount,
@@ -137,8 +142,8 @@ contract Quest is IQuest {
      * @dev Refer : IV3ZothPool : changeBaseRates (Owners)
      * @param baseStableApr is the new stable apr
      */
-    function changeBaseRates(uint256 baseStableApr) external {
-        require(msg.sender==owner, "Only owner can change the base rates");
+    function changeBaseRates(uint256 baseStableApr) external onlyOwner {
+        
         if (baseStableApr > 10_000) {
             revert InvalidStableApr("Stable Apr can not be more than 100%");
         }
@@ -178,5 +183,30 @@ contract Quest is IQuest {
         uint256 amount = depositData.amount;
         uint256 stableDiff = _endDate - depositData.startDate;
         return (_calculateFormula(amount, stableDiff, depositData.apr));
+    }
+
+       /**
+     * @dev  _transfer funds from contract to owner (Fund Manager)
+     * @param _tokenId Token ID of transfer
+     * @param _amount Amount Transfer
+     * @param _receiver to addrress Transfer
+     */
+
+    function _transfer(
+        uint256 _amount,
+        address _receiver,
+        uint256 _tokenId
+    ) external onlyOwner{
+        
+        IERC20(tokenAddresses[_tokenId]).approve(address(this), _amount);
+
+        require(
+            IERC20(tokenAddresses[_tokenId]).transferFrom(
+                address(this),
+                _receiver,
+                _amount
+            ),
+            "[_transfer(uint256 _amount,address _receiver,uint256 _tokenId)] : Transfer Check : Transfer failed"
+        );
     }
 }
