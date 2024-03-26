@@ -180,6 +180,39 @@ describe("Quest-Contract", function () {
         "1003287672501268391679"
       );
     });
+
+    it("Setting Apr Test", async () => {
+      const {
+        Quest,
+        owner,
+        tokenAddresses,
+        testUSDC1,
+        otherAccount,
+        questDeployedAddress,
+      } = await loadFixture(runEveryTime);
+      const spender_amount = ethers.parseUnits("1000", 18);
+      await testUSDC1
+        .connect(otherAccount)
+        .approve(questDeployedAddress, spender_amount);
+
+      await Quest.connect(owner).changeBaseRates(1250);
+      await Quest.connect(otherAccount).depositAmount(
+        ethers.parseUnits("200", 18),
+        0 // 1st token address
+      );
+
+      const unlockTime = (await time.latest()) + getSecondsOfDays(90);
+
+      await time.increaseTo(unlockTime);
+
+      await Quest.connect(otherAccount).withdrawAmount(
+        0 // Deposit Id
+      );
+
+      expect(await testUSDC1.balanceOf(otherAccount.address)).to.equal(
+        "1003287672501268391679"
+      );
+    });
     
   });
 });

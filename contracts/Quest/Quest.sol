@@ -15,6 +15,7 @@ contract Quest is IQuest {
         owner = msg.sender;
         tokenAddresses = _tokenAddresses;
     }
+  
 
     mapping(uint256 => RateInfo) public rateRounds;
     mapping(address => Deposit[]) public userDeposits;
@@ -165,7 +166,7 @@ contract Quest is IQuest {
         uint256 duration,
         uint256 rate
     ) private pure returns (uint256) {
-        return ((amount * duration * rate) / 1E2) / ONE_YEAR;
+        return ((amount * duration * rate) / 1E4) / ONE_YEAR;
     }
 
     /**
