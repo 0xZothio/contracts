@@ -10,7 +10,7 @@ async function main() {
   console.log("Deploying Quest Contract...");
 
   const Quest = await hre.ethers.deployContract("Quest", [
-    ["0x6581e59A1C8dA66eD0D313a0d4029DcE2F746Cc5"],
+    ["0x7EeCA4205fF31f947EdBd49195a7A88E6A91161B"],
   ]);
   await Quest.waitForDeployment();
 
@@ -27,7 +27,7 @@ async function main() {
   // Verify the Quest Contract
   await hre.run("verify:verify", {
     address: Quest.target,
-    constructorArguments: [["0x6581e59A1C8dA66eD0D313a0d4029DcE2F746Cc5"]],
+    constructorArguments: [["0x7EeCA4205fF31f947EdBd49195a7A88E6A91161B"]],
   });
 }
 

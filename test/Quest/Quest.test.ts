@@ -195,13 +195,13 @@ describe("Quest-Contract", function () {
         .connect(otherAccount)
         .approve(questDeployedAddress, spender_amount);
 
-      await Quest.connect(owner).changeBaseRates(1250);
+      await Quest.connect(owner).changeBaseRates(20);
       await Quest.connect(otherAccount).depositAmount(
-        ethers.parseUnits("200", 18),
+        ethers.parseUnits("400", 18),
         0 // 1st token address
       );
 
-      const unlockTime = (await time.latest()) + getSecondsOfDays(90);
+      const unlockTime = (await time.latest()) + getSecondsOfDays(30);
 
       await time.increaseTo(unlockTime);
 
@@ -210,7 +210,7 @@ describe("Quest-Contract", function () {
       );
 
       expect(await testUSDC1.balanceOf(otherAccount.address)).to.equal(
-        "1003287672501268391679"
+        "1006575345002536783358"
       );
     });
     

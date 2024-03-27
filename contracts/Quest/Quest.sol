@@ -1,5 +1,6 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.16;
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.16;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 import {IERC20} from "../Interfaces/IERC20.sol";
@@ -47,7 +48,7 @@ contract Quest is IQuest {
     function depositAmount(
         uint256 _amount,
         uint256 _tokenId
-    ) public returns (uint256) {
+    ) external returns (uint256) {
         if (_amount <= 0) {
             revert InvalidDepositAmount(
                 "[depositAmount(uint256 amount,uint tokenId)] : Amount check : Deposit amount must be greater than zero"
@@ -67,9 +68,10 @@ contract Quest is IQuest {
             "[depositAmount(uint256 amount,uint tokenId)] : Transfer Check : Transfer failed"
         );
         uint256 apr = getBaseApr();
+        uint currentId = nextDepositId;
         userDeposits[msg.sender].push(
             Deposit(
-                nextDepositId,
+                currentId,
                 msg.sender,
                 _amount,
                 _tokenId,
@@ -83,10 +85,10 @@ contract Quest is IQuest {
         }
 
         emit DepositAmount(msg.sender, _tokenId, _amount);
-        return nextDepositId - 1;
+        return currentId;
     }
 
-    function withdrawAmount(uint _depositId) public returns (bool) {
+    function withdrawAmount(uint _depositId) external returns (bool) {
         Deposit[] storage deposits = userDeposits[msg.sender];
         require(_depositId < deposits.length, "Invalid deposit ID");
         require(!deposits[_depositId].withdrawn, "Deposit already withdrawn");
@@ -166,7 +168,7 @@ contract Quest is IQuest {
         uint256 duration,
         uint256 rate
     ) private pure returns (uint256) {
-        return ((amount * duration * rate) / 1E4) / ONE_YEAR;
+        return ((amount * duration * rate) / 1E2) / ONE_YEAR;
     }
 
     /**
