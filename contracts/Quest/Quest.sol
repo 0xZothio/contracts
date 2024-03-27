@@ -45,48 +45,34 @@ contract Quest is IQuest {
         _;
     }
 
-    function depositAmount(
-        uint256 _amount,
-        uint256 _tokenId
-    ) external returns (uint256) {
-        if (_amount <= 0) {
-            revert InvalidDepositAmount(
-                "[depositAmount(uint256 amount,uint tokenId)] : Amount check : Deposit amount must be greater than zero"
-            );
-        }
+   function depositAmount(uint256 _amount, uint256 _tokenId) external returns (uint256) {
+    require(_amount > 0, "[depositAmount(uint256,uint256)]: Deposit amount must be greater than zero");
+    require(_tokenId < tokenAddresses.length, "Invalid Token Id");
 
-        if (_tokenId >= tokenAddresses.length) {
-            revert InvalidTokenId("Invalid Token Id");
-        }
+    require(
+        IERC20(tokenAddresses[_tokenId]).transferFrom(msg.sender, address(this), _amount),
+        "[depositAmount(uint256,uint256)]: Transfer failed"
+    );
 
-        require(
-            IERC20(tokenAddresses[_tokenId]).transferFrom(
-                msg.sender,
-                address(this),
-                _amount
-            ),
-            "[depositAmount(uint256 amount,uint tokenId)] : Transfer Check : Transfer failed"
-        );
-        uint256 apr = getBaseApr();
-        uint currentId = nextDepositId;
-        userDeposits[msg.sender].push(
-            Deposit(
-                currentId,
-                msg.sender,
-                _amount,
-                _tokenId,
-                apr,
-                block.timestamp,
-                false
-            )
-        );
-        unchecked {
-            ++nextDepositId;
-        }
+    uint256 apr = getBaseApr(); 
+    Deposit memory newDeposit = Deposit({
+        id: nextDepositId,
+        depositor: msg.sender,
+        amount: _amount,
+        tokenId: _tokenId,
+        apr: apr,
+        startDate: block.timestamp,
+        withdrawn: false
+    });
 
-        emit DepositAmount(msg.sender, _tokenId, _amount);
-        return currentId;
-    }
+    userDeposits[msg.sender].push(newDeposit);
+
+    unchecked { ++nextDepositId; }
+
+    emit DepositAmount(msg.sender, _tokenId, _amount);
+    
+    return newDeposit.id;
+}
 
     function withdrawAmount(uint _depositId) external returns (bool) {
         Deposit[] storage deposits = userDeposits[msg.sender];
